@@ -10,11 +10,9 @@
 #include <sys/time.h>
 #elif defined(_WIN32)
 #include <windows.h>
-#else
-#error "Architecture not supported"
 #endif
 
-
+#define OMIT_LIB_BUILD_TIME
 int main(int argc, char **argv)
 {
 #if defined(OMIT_LIB_BUILD_TIME)
