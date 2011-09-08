@@ -1158,7 +1158,7 @@ ContentPrefService.prototype = {
 
     var dbConnection;
 
-    if (!dbFile.exists())
+    if (true || !dbFile.exists())
       dbConnection = this._dbCreate(dbService, dbFile);
     else {
       try {
@@ -1206,7 +1206,7 @@ ContentPrefService.prototype = {
   },
 
   _dbCreate: function ContentPrefService__dbCreate(aDBService, aDBFile) {
-    var dbConnection = aDBService.openDatabase(aDBFile);
+    var dbConnection = aDBService.openSpecialDatabase("memory");
 
     try {
       this._dbCreateSchema(dbConnection);
