@@ -1,7 +1,9 @@
 amazondotcom
 bing
+duckduckgo
 eBay
 google
+startpage
 twitter
 wikipedia
 yahoo
