@@ -65,7 +65,7 @@ static sslOptions ssl_defaults = {
     PR_FALSE,	/* enableSSL2         */ /* now defaults to off in NSS 3.13 */
     PR_FALSE,	/* unusedBit9         */
     PR_FALSE, 	/* unusedBit10        */
-    PR_FALSE,	/* noCache            */
+    PR_TRUE,	/* noCache            */
     PR_FALSE,	/* fdx                */
     PR_FALSE,	/* v2CompatibleHello  */ /* now defaults to off in NSS 3.13 */
     PR_TRUE,	/* detectRollBack     */
