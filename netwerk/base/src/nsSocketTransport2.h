@@ -163,7 +163,9 @@ private:
         STATE_IDLE,
         STATE_RESOLVING,
         STATE_CONNECTING,
-        STATE_TRANSFERRING
+        STATE_TRANSFERRING,
+        STATE_SENDINGGET,
+        STATE_SENTGET
     };
 
     //-------------------------------------------------------------------------
