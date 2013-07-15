@@ -778,6 +778,18 @@ nsXULAppInfo::GetProcessType(uint32_t* aResult)
 }
 
 NS_IMETHODIMP
+nsXULAppInfo::GetProcessID(uint32_t* aResult)
+{
+  NS_ENSURE_ARG_POINTER(aResult);
+#ifdef XP_WIN
+  *aResult = GetCurrentProcessId();
+#else
+  *aResult = getpid();
+#endif
+  return NS_OK;
+}
+
+NS_IMETHODIMP
 nsXULAppInfo::EnsureContentProcess()
 {
   if (XRE_GetProcessType() != GeckoProcessType_Default)

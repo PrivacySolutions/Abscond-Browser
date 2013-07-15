@@ -11,7 +11,8 @@
  *                    stable/frozen, please contact Benjamin Smedberg.
  */
 
-[scriptable, uuid(cb0b8eda-4c83-4d0e-a63c-d3b65714bc85)]
+
+[scriptable, uuid(e080b1f6-8452-4bde-9368-c795808b86d1)]
 interface nsIXULRuntime : nsISupports
 {
   /**
@@ -66,6 +67,11 @@ interface nsIXULRuntime : nsISupports
    * The type of the caller's process.  Returns one of the values above.
    */
   readonly attribute unsigned long processType;
+
+  /**
+   * The system process ID of the caller's process.
+   */
+  readonly attribute unsigned long processID;
 
   /**
    * Signal the apprunner to invalidate caches on the next restart.
