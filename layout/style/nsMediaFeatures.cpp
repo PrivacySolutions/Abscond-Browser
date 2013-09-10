@@ -95,6 +95,9 @@ GetDeviceContextFor(nsPresContext* aPresContext)
 static nsSize
 GetDeviceSize(nsPresContext* aPresContext)
 {
+  if (!aPresContext->IsChrome()) {
+    return GetSize(aPresContext);
+  } else {
     nsSize size;
     if (aPresContext->IsRootPaginatedDocument())
         // We want the page size, including unprintable areas and margins.
@@ -105,6 +108,7 @@ GetDeviceSize(nsPresContext* aPresContext)
         GetDeviceContextFor(aPresContext)->
             GetDeviceSurfaceDimensions(size.width, size.height);
     return size;
+  }
 }
 
 static nsresult
@@ -201,13 +205,17 @@ static nsresult
 GetColor(nsPresContext* aPresContext, const nsMediaFeature*,
          nsCSSValue& aResult)
 {
-    // FIXME:  This implementation is bogus.  nsDeviceContext
-    // doesn't provide reliable information (should be fixed in bug
-    // 424386).
-    // FIXME: On a monochrome device, return 0!
-    nsDeviceContext *dx = GetDeviceContextFor(aPresContext);
-    uint32_t depth;
-    dx->GetDepth(depth);
+    uint32_t depth = 24; // Always return 24 to non-chrome callers.
+
+    if (aPresContext->IsChrome()) {
+        // FIXME:  This implementation is bogus.  nsDeviceContext
+        // doesn't provide reliable information (should be fixed in bug
+        // 424386).
+        // FIXME: On a monochrome device, return 0!
+        nsDeviceContext *dx = GetDeviceContextFor(aPresContext);
+        dx->GetDepth(depth);
+    }
+
     // The spec says to use bits *per color component*, so divide by 3,
     // and round down, since the spec says to use the smallest when the
     // color components differ.
@@ -245,18 +253,23 @@ static nsresult
 GetResolution(nsPresContext* aPresContext, const nsMediaFeature*,
               nsCSSValue& aResult)
 {
-    // Resolution measures device pixels per CSS (inch/cm/pixel).  We
-    // return it in device pixels per CSS inches.
-    //
-    // However, on platforms where the CSS viewport is not fixed to the
-    // screen viewport, use the device resolution instead (bug 779527).
-    nsIPresShell *shell = aPresContext->PresShell();
-    float appUnitsPerInch = shell->GetIsViewportOverridden() ?
-            GetDeviceContextFor(aPresContext)->AppUnitsPerPhysicalInch() :
-            nsPresContext::AppUnitsPerCSSInch();
+    float dpi = 96; // Always return 96 to non-chrome callers.
 
-    float dpi = appUnitsPerInch /
+    if (aPresContext->IsChrome()) {
+        // Resolution measures device pixels per CSS (inch/cm/pixel).  We
+        // return it in device pixels per CSS inches.
+        //
+        // However, on platforms where the CSS viewport is not fixed to the
+        // screen viewport, use the device resolution instead (bug 779527).
+        nsIPresShell *shell = aPresContext->PresShell();
+        float appUnitsPerInch = shell->GetIsViewportOverridden() ?
+                GetDeviceContextFor(aPresContext)->AppUnitsPerPhysicalInch() :
+                nsPresContext::AppUnitsPerCSSInch();
+
+        dpi = appUnitsPerInch /
                 float(aPresContext->AppUnitsPerDevPixel());
+    }
+
     aResult.SetFloatValue(dpi, eCSSUnit_Inch);
     return NS_OK;
 }
@@ -285,8 +298,12 @@ static nsresult
 GetDevicePixelRatio(nsPresContext* aPresContext, const nsMediaFeature*,
                     nsCSSValue& aResult)
 {
-  float ratio = aPresContext->CSSPixelsToDevPixels(1.0f);
-  aResult.SetFloatValue(ratio, eCSSUnit_Number);
+  if (aPresContext->IsChrome()) {
+    float ratio = aPresContext->CSSPixelsToDevPixels(1.0f);
+    aResult.SetFloatValue(ratio, eCSSUnit_Number);
+  } else {
+    aResult.SetFloatValue(1.0, eCSSUnit_Number);
+  }
   return NS_OK;
 }
 
@@ -294,20 +311,24 @@ static nsresult
 GetSystemMetric(nsPresContext* aPresContext, const nsMediaFeature* aFeature,
                 nsCSSValue& aResult)
 {
+  aResult.Reset();
+  if (aPresContext->IsChrome()) {
     NS_ABORT_IF_FALSE(aFeature->mValueType == nsMediaFeature::eBoolInteger,
                       "unexpected type");
     nsIAtom *metricAtom = *aFeature->mData.mMetric;
     bool hasMetric = nsCSSRuleProcessor::HasSystemMetric(metricAtom);
     aResult.SetIntValue(hasMetric ? 1 : 0, eCSSUnit_Integer);
-    return NS_OK;
+  }
+  return NS_OK;
 }
 
 static nsresult
 GetWindowsTheme(nsPresContext* aPresContext, const nsMediaFeature* aFeature,
                 nsCSSValue& aResult)
 {
-    aResult.Reset();
+  aResult.Reset();
 #ifdef XP_WIN
+  if (aPresContext->IsChrome()) {
     uint8_t windowsThemeId =
         nsCSSRuleProcessor::GetWindowsThemeIdentifier();
 
@@ -323,8 +344,9 @@ GetWindowsTheme(nsPresContext* aPresContext, const nsMediaFeature* aFeature,
             break;
         }
     }
+  }
 #endif
-    return NS_OK;
+  return NS_OK;
 }
 
 static nsresult
