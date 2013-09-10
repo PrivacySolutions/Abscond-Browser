@@ -9,6 +9,7 @@
 #include "gfxTypes.h"
 #include "gfxFont.h"
 #include "gfxFontUtils.h"
+#include "nsPresContext.h"
 #include "nsRefPtrHashtable.h"
 #include "nsAutoPtr.h"
 #include "nsCOMPtr.h"
@@ -241,6 +242,8 @@ public:
 
     // increment the generation on font load
     void IncrementGeneration();
+
+    virtual nsPresContext *GetPresContext() { return NULL; }
 
     class UserFontCache {
     public:
