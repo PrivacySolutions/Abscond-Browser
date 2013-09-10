@@ -64,6 +64,13 @@ interface nsICachingChannel : nsICacheInfoChannel
      */
     attribute nsISupports cacheKey;
 
+    /**
+     * Set/get the cache domain... uniquely identifies the data in the cache
+     * for this channel.  Holding a reference to this key does NOT prevent
+     * the cached data from being removed.
+     */
+    attribute AUTF8String cacheDomain;
+
     /**************************************************************************
      * Caching channel specific load flags:
      */
