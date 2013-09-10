@@ -1137,8 +1137,21 @@ nsNSSComponent::InitializeNSS(bool showWarningBox)
     // Ubuntu 8.04, which loads any nonexistent "<configdir>/libnssckbi.so" as
     // "/usr/lib/nss/libnssckbi.so".
     uint32_t init_flags = NSS_INIT_NOROOTINIT | NSS_INIT_OPTIMIZESPACE;
-    SECStatus init_rv = ::NSS_Initialize(profileStr.get(), "", "",
-                                         SECMOD_DB, init_flags);
+    bool nocertdb = false;
+    mPrefBranch->GetBoolPref("security.nocertdb", &nocertdb);
+
+    // XXX: We can also do the the following to only disable the certdb.
+    // Leaving this codepath in as a fallback in case InitNODB fails
+    if (nocertdb)
+      init_flags |= NSS_INIT_NOCERTDB;
+
+    SECStatus init_rv;
+    if (nocertdb) {
+        init_rv = ::NSS_NoDB_Init(NULL);
+    } else {
+        init_rv = ::NSS_Initialize(profileStr.get(), "", "",
+                                          SECMOD_DB, init_flags);
+    }
 
     if (init_rv != SECSuccess) {
       PR_LOG(gPIPNSSLog, PR_LOG_DEBUG, ("can not init NSS r/w in %s\n", profileStr.get()));
