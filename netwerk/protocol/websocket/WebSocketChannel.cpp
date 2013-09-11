@@ -2202,8 +2202,12 @@ WebSocketChannel::ApplyForAdmission()
   LOG(("WebSocketChannel::ApplyForAdmission: checking for concurrent open\n"));
   nsCOMPtr<nsIThread> mainThread;
   NS_GetMainThread(getter_AddRefs(mainThread));
-  dns->AsyncResolve(hostName, 0, this, mainThread, getter_AddRefs(mDNSRequest));
-  NS_ENSURE_SUCCESS(rv, rv);
+  rv = dns->AsyncResolve(hostName, 0, this, mainThread, getter_AddRefs(mDNSRequest));
+  if (NS_FAILED(rv)) {
+      // Fall back to hostname on dispatch failure
+      mDNSRequest = nullptr;
+      OnLookupComplete(nullptr, nullptr, rv);
+  }
 
   return NS_OK;
 }
