@@ -262,6 +262,7 @@ nsBoxObject::GetHeight(int32_t* aResult)
   return NS_OK;
 }
 
+// XXX: Does this need to be client coords for content?
 NS_IMETHODIMP
 nsBoxObject::GetScreenX(int32_t *_retval)
 {

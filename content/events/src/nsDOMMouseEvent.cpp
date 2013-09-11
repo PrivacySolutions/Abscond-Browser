@@ -308,6 +308,19 @@ nsDOMMouseEvent::GetMozMovementY(int32_t* aMovementY)
 NS_METHOD nsDOMMouseEvent::GetScreenX(int32_t* aScreenX)
 {
   NS_ENSURE_ARG_POINTER(aScreenX);
+  bool isChrome = nsContentUtils::IsCallerChrome();
+  if (!isChrome)
+  {
+    // For non-chrome callers, return client coordinates instead.
+    // For some events, the result will be zero; specifically, for dragend
+    // events (there is no widget associated with dragend events, which
+    // causes GetClientX() to return zero).  Since dragend is for the drag
+    // originator and not for the receiver, it is probably not widely used
+    // (receivers get a drop event).  Therefore, returning 0 should not break
+    // many web pages.  Also, a few years ago Firefox returned 0.
+    // See:  https://bugzilla.mozilla.org/show_bug.cgi?id=466379
+    return GetClientX(aScreenX);
+  }
   *aScreenX = ScreenX();
   return NS_OK;
 }
@@ -324,6 +337,13 @@ NS_IMETHODIMP
 nsDOMMouseEvent::GetScreenY(int32_t* aScreenY)
 {
   NS_ENSURE_ARG_POINTER(aScreenY);
+  bool isChrome = nsContentUtils::IsCallerChrome();
+  if (!isChrome)
+  {
+    // For non-chrome callers, return client coordinates instead.
+    // See also the comment in nsDOMMouseEvent::GetScreenX().
+    return GetClientY(aScreenY);
+  }
   *aScreenY = ScreenY();
   return NS_OK;
 }

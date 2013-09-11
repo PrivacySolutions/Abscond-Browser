@@ -1061,6 +1061,7 @@ nsDOMEvent::Shutdown()
   }
 }
 
+// XXX: This may need adjusting to be client-relative for content
 nsIntPoint
 nsDOMEvent::GetScreenCoords(nsPresContext* aPresContext,
                             nsEvent* aEvent,

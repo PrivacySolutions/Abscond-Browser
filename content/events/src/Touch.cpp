@@ -61,14 +61,16 @@ Touch::Target() const
 NS_IMETHODIMP
 Touch::GetScreenX(int32_t* aScreenX)
 {
-  *aScreenX = ScreenX();
+  bool isChrome = nsContentUtils::IsCallerChrome();
+  *aScreenX = isChrome ? ScreenX() : ClientX();
   return NS_OK;
 }
 
 NS_IMETHODIMP
 Touch::GetScreenY(int32_t* aScreenY)
 {
-  *aScreenY = ScreenY();
+  bool isChrome = nsContentUtils::IsCallerChrome();
+  *aScreenY = isChrome ? ScreenY() : ClientY();
   return NS_OK;
 }
 
