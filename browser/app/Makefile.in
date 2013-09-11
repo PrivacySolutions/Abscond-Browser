@@ -17,6 +17,7 @@ endif
 
 PREF_JS_EXPORTS = $(srcdir)/profile/firefox.js \
 		  $(NULL)
+PREF_JS_EXPORTS += $(srcdir)/profile/000-tor-browser.js
 
 
 # hardcode en-US for the moment
