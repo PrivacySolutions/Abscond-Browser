@@ -1207,6 +1207,7 @@ toolbar[iconsize="small"] #webrtc-status-button {
   list-style-image: url("moz-icon://stock/gtk-cancel?size=menu");
 }
 
+.popup-notification-icon[popupid="canvas-permissions-prompt"],
 .popup-notification-icon[popupid="indexedDB-permissions-prompt"],
 .popup-notification-icon[popupid="indexedDB-quota-prompt"],
 .popup-notification-icon[popupid*="offline-app-requested"],
@@ -1290,6 +1291,7 @@ toolbar[iconsize="small"] #webrtc-status-button {
   list-style-image: url(chrome://mozapps/skin/extensions/extensionGeneric-16.png);
 }
 
+#canvas-notification-icon,
 .indexedDB-notification-icon,
 #indexedDB-notification-icon {
   list-style-image: url(chrome://global/skin/icons/question-16.png);

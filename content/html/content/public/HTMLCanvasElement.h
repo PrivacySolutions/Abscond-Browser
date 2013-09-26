@@ -229,14 +229,17 @@ protected:
   nsresult UpdateContext(JSContext* aCx, JS::Handle<JS::Value> options);
   nsresult ExtractData(const nsAString& aType,
                        const nsAString& aOptions,
+                       bool aUsePlaceholder,
                        nsIInputStream** aStream,
                        bool& aFellBackToPNG);
   nsresult ToDataURLImpl(JSContext* aCx,
                          const nsAString& aMimeType,
                          const JS::Value& aEncoderOptions,
+                         bool aUsePlaceholder,
                          nsAString& aDataURL);
   nsresult MozGetAsFileImpl(const nsAString& aName,
                             const nsAString& aType,
+                            bool aUsePlaceholder,
                             nsIDOMFile** aResult);
   nsresult GetContextHelper(const nsAString& aContextId,
                             nsICanvasRenderingContextInternal **aContext);

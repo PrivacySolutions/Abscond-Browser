@@ -26,8 +26,73 @@
 
 using namespace mozilla::gfx;
 
+#include "nsIScriptObjectPrincipal.h"
+#include "nsIPermissionManager.h"
+#include "nsIObserverService.h"
+#include "mozilla/Services.h"
+#include "mozIThirdPartyUtil.h"
+#include "nsContentUtils.h"
+#include "nsUnicharUtils.h"
+
+#define TOPIC_CANVAS_PERMISSIONS_PROMPT "canvas-permissions-prompt"
+#define PERMISSION_CANVAS_EXTRACT_DATA "canvas/extractData"
+
 namespace mozilla {
 namespace CanvasUtils {
+
+// Check site-specific permission and display prompt if appropriate.
+bool
+IsImageExtractionAllowed(nsIDocument *aDocument)
+{
+  if (!aDocument)
+    return false;
+
+  nsPIDOMWindow *win = aDocument->GetWindow();
+  nsCOMPtr<nsIScriptObjectPrincipal> sop(do_QueryInterface(win));
+  if (sop && nsContentUtils::IsSystemPrincipal(sop->GetPrincipal()))
+    return true;
+
+  bool isAllowed = false;
+  nsCOMPtr<mozIThirdPartyUtil> thirdPartyUtil =
+                                do_GetService(THIRDPARTYUTIL_CONTRACTID);
+  nsCOMPtr<nsIPermissionManager> permissionManager =
+                          do_GetService(NS_PERMISSIONMANAGER_CONTRACTID);
+  if (thirdPartyUtil && permissionManager) {
+    nsCOMPtr<nsIURI> uri;
+    nsresult rv = thirdPartyUtil->GetFirstPartyURI(NULL, aDocument,
+                                                   getter_AddRefs(uri));
+    uint32_t permission = nsIPermissionManager::UNKNOWN_ACTION;
+    if (NS_SUCCEEDED(rv)) {
+      // Allow local files to access canvas data; check content permissions
+      // for remote pages.
+      bool isFileURL = false;
+      (void)uri->SchemeIs("file", &isFileURL);
+      if (isFileURL)
+        permission = nsIPermissionManager::ALLOW_ACTION;
+      else {
+        rv = permissionManager->TestPermission(uri,
+                                PERMISSION_CANVAS_EXTRACT_DATA, &permission);
+      }
+    }
+
+    if (NS_SUCCEEDED(rv)) {
+      isAllowed = (permission == nsIPermissionManager::ALLOW_ACTION);
+
+      if (!isAllowed && (permission != nsIPermissionManager::DENY_ACTION)) {
+        // Send notification so that a prompt is displayed.
+        nsCString spec;
+        rv = uri->GetSpec(spec);
+        NS_ENSURE_SUCCESS(rv, false);
+        nsCOMPtr<nsIObserverService> obs =
+                                    mozilla::services::GetObserverService();
+        obs->NotifyObservers(win, TOPIC_CANVAS_PERMISSIONS_PROMPT,
+                             NS_ConvertUTF8toUTF16(spec).get());
+      }
+    }
+  }
+
+  return isAllowed;
+}
 
 void
 DoDrawImageSecurityCheck(dom::HTMLCanvasElement *aCanvasElement,

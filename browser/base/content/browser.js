@@ -1027,6 +1027,7 @@ var gBrowserInit = {
     BrowserOffline.init();
     OfflineApps.init();
     IndexedDBPromptHelper.init();
+    CanvasPermissionPromptHelper.init();
     gFormSubmitObserver.init();
     SocialUI.init();
     AddonManager.addAddonListener(AddonsMgrListener);
@@ -1389,6 +1390,7 @@ var gBrowserInit = {
       BrowserOffline.uninit();
       OfflineApps.uninit();
       IndexedDBPromptHelper.uninit();
+      CanvasPermissionPromptHelper.uninit();
       AddonManager.removeAddonListener(AddonsMgrListener);
       SocialUI.uninit();
     }
@@ -6023,6 +6025,106 @@ var IndexedDBPromptHelper = {
     // timeout value. If the user doesn't notice the popup after this amount of
     // time then it is most likely not visible and we want to alert the page.
     timeoutId = setTimeout(timeoutNotification, firstTimeoutDuration);
+  }
+};
+
+var CanvasPermissionPromptHelper = {
+  _permissionsPrompt: "canvas-permissions-prompt",
+  _notificationIcon: "canvas-notification-icon",
+
+  init:
+  function CanvasPermissionPromptHelper_init() {
+    Services.obs.addObserver(this, this._permissionsPrompt, false);
+  },
+
+  uninit:
+  function CanvasPermissionPromptHelper_uninit() {
+    Services.obs.removeObserver(this, this._permissionsPrompt, false);
+  },
+
+  // aSubject is an nsIDOMWindow.
+  // aData is an URL string.
+  observe:
+  function CanvasPermissionPromptHelper_observe(aSubject, aTopic, aData) {
+    if ((aTopic != this._permissionsPrompt) || !aData)
+      throw new Error("Unexpected topic or missing URL");
+
+    var uri = makeURI(aData);
+    var contentWindow = aSubject.QueryInterface(Ci.nsIDOMWindow);
+    var contentDocument = contentWindow.document;
+    var browserWindow =
+      OfflineApps._getBrowserWindowForContentWindow(contentWindow);
+
+    if (browserWindow != window) {
+      // Must belong to some other window.
+      return;
+    }
+
+    // If canvas prompt is already displayed, just return.  This is OK (and
+    // more efficient) since this permission is associated with the top
+    // browser's URL.
+    if (PopupNotifications.getNotification(aTopic, browser))
+      return;
+
+    var bundleSvc = Cc["@mozilla.org/intl/stringbundle;1"].
+                        getService(Ci.nsIStringBundleService);
+    var torBtnBundle;
+    try {
+      torBtnBundle = bundleSvc.createBundle(
+                             "chrome://torbutton/locale/torbutton.properties");
+    } catch (e) {}
+
+    var message = getLocalizedString("canvas.siteprompt", [ uri.asciiHost ]);
+
+    var mainAction = {
+      label: getLocalizedString("canvas.allow"),
+      accessKey: getLocalizedString("canvas.allowAccessKey"),
+      callback: function() {
+          setCanvasPermission(uri, Ci.nsIPermissionManager.ALLOW_ACTION);
+      }
+    };
+
+    var secondaryActions = [
+      {
+        label: getLocalizedString("canvas.never"),
+        accessKey: getLocalizedString("canvas.neverAccessKey"),
+        callback: function() {
+          setCanvasPermission(uri, Ci.nsIPermissionManager.DENY_ACTION);
+        }
+      }
+    ];
+
+    // Since we have a process in place to perform localization for the
+    // Torbutton extension, get our strings from the extension if possible.
+    function getLocalizedString(aID, aParams) {
+      var s;
+      if (torBtnBundle) try {
+        if (aParams)
+          s = torBtnBundle.formatStringFromName(aID, aParams, aParams.length);
+        else
+          s = torBtnBundle.GetStringFromName(aID);
+      } catch (e) {}
+
+      if (!s) {
+        if (aParams)
+          s = gNavigatorBundle.getFormattedString(aID, aParams);
+        else
+          s = gNavigatorBundle.getString(aID);
+      }
+
+      return s;
+    }
+
+    function setCanvasPermission(aURI, aPerm) {
+      Services.perms.add(aURI, "canvas/extractData", aPerm,
+                         Ci.nsIPermissionManager.EXPIRE_NEVER);
+    }
+
+    var browser = OfflineApps._getBrowserForContentWindow(browserWindow,
+                                                          contentWindow);
+    notification = PopupNotifications.show(browser, aTopic, message,
+                                           this._notificationIcon, mainAction,
+                                           secondaryActions, null);
   }
 };
 

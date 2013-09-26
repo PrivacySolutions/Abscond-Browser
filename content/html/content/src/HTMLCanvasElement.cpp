@@ -30,6 +30,7 @@
 #include "nsMathUtils.h"
 #include "nsNetUtil.h"
 #include "nsStreamUtils.h"
+#include "CanvasUtils.h"
 
 using namespace mozilla::layers;
 
@@ -352,7 +353,10 @@ HTMLCanvasElement::ToDataURL(const nsAString& aType, const JS::Value& aParams,
     return NS_ERROR_DOM_SECURITY_ERR;
   }
 
-  return ToDataURLImpl(aCx, aType, aParams, aDataURL);
+  // Check site-specific permission and display prompt if appropriate.
+  // If no permission, return all-white, opaque image data.
+  bool usePlaceholder = !CanvasUtils::IsImageExtractionAllowed(OwnerDoc());
+  return ToDataURLImpl(aCx, aType, aParams, usePlaceholder, aDataURL);
 }
 
 // HTMLCanvasElement::mozFetchAsStream
@@ -368,7 +372,8 @@ HTMLCanvasElement::MozFetchAsStream(nsIInputStreamCallback *aCallback,
   bool fellBackToPNG = false;
   nsCOMPtr<nsIInputStream> inputData;
 
-  rv = ExtractData(aType, EmptyString(), getter_AddRefs(inputData), fellBackToPNG);
+  rv = ExtractData(aType, EmptyString(), false,
+                   getter_AddRefs(inputData), fellBackToPNG);
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIAsyncInputStream> asyncData = do_QueryInterface(inputData, &rv);
@@ -410,18 +415,25 @@ HTMLCanvasElement::GetMozPrintCallback(nsIPrintCallback** aCallback)
 nsresult
 HTMLCanvasElement::ExtractData(const nsAString& aType,
                                const nsAString& aOptions,
+                               bool aUsePlaceholder,
                                nsIInputStream** aStream,
                                bool& aFellBackToPNG)
 {
   // note that if we don't have a current context, the spec says we're
   // supposed to just return transparent black pixels of the canvas
   // dimensions.
+  // If placeholder data was requested, return all-white, opaque image data.
   nsRefPtr<gfxImageSurface> emptyCanvas;
   nsIntSize size = GetWidthHeight();
-  if (!mCurrentContext) {
+  if (aUsePlaceholder || !mCurrentContext) {
     emptyCanvas = new gfxImageSurface(gfxIntSize(size.width, size.height), gfxASurface::ImageFormatARGB32);
     if (emptyCanvas->CairoStatus()) {
       return NS_ERROR_INVALID_ARG;
+    }
+
+    if (aUsePlaceholder) {
+      int32_t dataSize = emptyCanvas->GetDataSize();
+      memset(emptyCanvas->Data(), 0xFF, dataSize);
     }
   }
 
@@ -432,12 +444,13 @@ HTMLCanvasElement::ExtractData(const nsAString& aType,
   NS_ConvertUTF16toUTF8 encoderType(aType);
 
  try_again:
-  if (mCurrentContext) {
+  if (!aUsePlaceholder && mCurrentContext) {
     rv = mCurrentContext->GetInputStream(encoderType.get(),
                                          nsPromiseFlatString(aOptions).get(),
                                          getter_AddRefs(imgStream));
   } else {
-    // no context, so we have to encode the empty image we created above
+    // Using placeholder or we have no context:  encode the empty/white image
+    // we created above.
     nsCString enccid("@mozilla.org/image/encoder;2?type=");
     enccid += encoderType;
 
@@ -476,6 +489,7 @@ nsresult
 HTMLCanvasElement::ToDataURLImpl(JSContext* aCx,
                                  const nsAString& aMimeType,
                                  const JS::Value& aEncoderOptions,
+                                 bool aUsePlaceholder,
                                  nsAString& aDataURL)
 {
   bool fallbackToPNG = false;
@@ -527,13 +541,15 @@ HTMLCanvasElement::ToDataURLImpl(JSContext* aCx,
   }
 
   nsCOMPtr<nsIInputStream> stream;
-  rv = ExtractData(type, params, getter_AddRefs(stream), fallbackToPNG);
+  rv = ExtractData(type, params, aUsePlaceholder,
+                   getter_AddRefs(stream), fallbackToPNG);
 
   // If there are unrecognized custom parse options, we should fall back to
   // the default values for the encoder without any options at all.
   if (rv == NS_ERROR_INVALID_ARG && usingCustomParseOptions) {
     fallbackToPNG = false;
-    rv = ExtractData(type, EmptyString(), getter_AddRefs(stream), fallbackToPNG);
+    rv = ExtractData(type, EmptyString(), aUsePlaceholder,
+                     getter_AddRefs(stream), fallbackToPNG);
   }
 
   NS_ENSURE_SUCCESS(rv, rv);
@@ -575,8 +591,12 @@ HTMLCanvasElement::ToBlob(nsIFileCallback* aCallback,
 
   bool fallbackToPNG = false;
 
+  // Check site-specific permission and display prompt if appropriate.
+  // If no permission, return all-white, opaque image data.
+  bool usePlaceholder = !CanvasUtils::IsImageExtractionAllowed(OwnerDoc());
   nsCOMPtr<nsIInputStream> stream;
-  rv = ExtractData(type, EmptyString(), getter_AddRefs(stream), fallbackToPNG);
+  rv = ExtractData(type, EmptyString(), usePlaceholder,
+                   getter_AddRefs(stream), fallbackToPNG);
   NS_ENSURE_SUCCESS(rv, rv);
 
   if (fallbackToPNG) {
@@ -626,19 +646,23 @@ HTMLCanvasElement::MozGetAsFile(const nsAString& aName,
     return NS_ERROR_DOM_SECURITY_ERR;
   }
 
-  return MozGetAsFileImpl(aName, aType, aResult);
+  // Check site-speciifc permission and display prompt if appropriate.
+  // If no permission, return all-white, opaque image data.
+  bool usePlaceholder = !CanvasUtils::IsImageExtractionAllowed(OwnerDoc());
+  return MozGetAsFileImpl(aName, aType, usePlaceholder, aResult);
 }
 
 nsresult
 HTMLCanvasElement::MozGetAsFileImpl(const nsAString& aName,
                                     const nsAString& aType,
+                                    bool aUsePlaceholder,
                                     nsIDOMFile** aResult)
 {
   bool fallbackToPNG = false;
 
   nsCOMPtr<nsIInputStream> stream;
-  nsresult rv = ExtractData(aType, EmptyString(), getter_AddRefs(stream),
-                            fallbackToPNG);
+  nsresult rv = ExtractData(aType, EmptyString(), aUsePlaceholder,
+                            getter_AddRefs(stream), fallbackToPNG);
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsAutoString type(aType);

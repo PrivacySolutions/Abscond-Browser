@@ -3103,6 +3103,7 @@ toolbarbutton.chevron > .toolbarbutton-menu-dropmarker {
   -moz-margin-start: 0; /* override default label margin to match description margin */
 }
 
+#canvas-notification-icon,
 .indexedDB-notification-icon,
 #indexedDB-notification-icon {
   list-style-image: url(chrome://global/skin/icons/question-16.png);
@@ -3374,6 +3375,7 @@ toolbarbutton.chevron > .toolbarbutton-menu-dropmarker {
   -moz-image-region: rect(0px, 48px, 16px, 32px);
 }
 
+.popup-notification-icon[popupid="canvas-permissions-prompt"],
 .popup-notification-icon[popupid="indexedDB-permissions-prompt"],
 .popup-notification-icon[popupid="indexedDB-quota-prompt"],
 .popup-notification-icon[popupid*="offline-app-requested"],

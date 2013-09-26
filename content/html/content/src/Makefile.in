@@ -27,6 +27,7 @@ INCLUDES	+= \
 		-I$(srcdir)/../../../events/src \
 		-I$(srcdir)/../../../xbl/src \
 		-I$(srcdir)/../../../xul/content/src \
+		-I$(srcdir)/../../../canvas/src/ \
 		-I$(srcdir)/../../../../layout/forms \
 		-I$(srcdir)/../../../../layout/style \
 		-I$(srcdir)/../../../../layout/tables \
