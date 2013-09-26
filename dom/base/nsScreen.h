@@ -20,6 +20,7 @@
 
 class nsIDocShell;
 class nsDeviceContext;
+class nsIDOMWindow;
 
 // Script "screen" object
 class nsScreen : public nsDOMEventTargetHelper
@@ -121,6 +122,9 @@ protected:
   nsDeviceContext* GetDeviceContext();
   nsresult GetRect(nsRect& aRect);
   nsresult GetAvailRect(nsRect& aRect);
+  bool IsChrome();
+  nsresult GetDOMWindow(nsIDOMWindow **aResult);
+  nsresult GetWindowInnerRect(nsRect& aRect);
 
   mozilla::dom::ScreenOrientation mOrientation;
 

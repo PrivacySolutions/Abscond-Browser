@@ -999,6 +999,8 @@ protected:
   nsresult SetOuterSize(int32_t aLengthCSSPixels, bool aIsWidth);
   nsRect GetInnerScreenRect();
 
+  bool IsChrome();
+
   bool IsFrame()
   {
     return GetParentInternal() != nullptr;

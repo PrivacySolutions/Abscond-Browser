@@ -4268,6 +4268,10 @@ nsGlobalWindow::GetOuterWidth(int32_t* aOuterWidth)
 {
   FORWARD_TO_OUTER(GetOuterWidth, (aOuterWidth), NS_ERROR_NOT_INITIALIZED);
 
+  // For non-chrome callers, return inner width to prevent fingerprinting.
+  if (!IsChrome())
+    return GetInnerWidth(aOuterWidth);
+
   nsIntSize sizeCSSPixels;
   nsresult rv = GetOuterSize(&sizeCSSPixels);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -4280,6 +4284,10 @@ NS_IMETHODIMP
 nsGlobalWindow::GetOuterHeight(int32_t* aOuterHeight)
 {
   FORWARD_TO_OUTER(GetOuterHeight, (aOuterHeight), NS_ERROR_NOT_INITIALIZED);
+
+  // For non-chrome callers, return inner height to prevent fingerprinting.
+  if (!IsChrome())
+    return GetInnerHeight(aOuterHeight);
 
   nsIntSize sizeCSSPixels;
   nsresult rv = GetOuterSize(&sizeCSSPixels);
@@ -4340,6 +4348,12 @@ nsGlobalWindow::GetScreenX(int32_t* aScreenX)
 {
   FORWARD_TO_OUTER(GetScreenX, (aScreenX), NS_ERROR_NOT_INITIALIZED);
 
+   // For non-chrome callers, always return 0 to prevent fingerprinting.
+   if (!IsChrome()) {
+     *aScreenX = 0;
+     return NS_OK;
+   }
+
   nsCOMPtr<nsIBaseWindow> treeOwnerAsWin = GetTreeOwnerWindow();
   NS_ENSURE_TRUE(treeOwnerAsWin, NS_ERROR_FAILURE);
 
@@ -4386,6 +4400,12 @@ nsGlobalWindow::GetMozInnerScreenX(float* aScreenX)
 {
   FORWARD_TO_OUTER(GetMozInnerScreenX, (aScreenX), NS_ERROR_NOT_INITIALIZED);
 
+  // For non-chrome callers, always return 0 to prevent fingerprinting.
+  if (!IsChrome()) {
+    *aScreenX = 0;
+    return NS_OK;
+  }
+
   nsRect r = GetInnerScreenRect();
   *aScreenX = nsPresContext::AppUnitsToFloatCSSPixels(r.x);
   return NS_OK;
@@ -4395,6 +4415,12 @@ NS_IMETHODIMP
 nsGlobalWindow::GetMozInnerScreenY(float* aScreenY)
 {
   FORWARD_TO_OUTER(GetMozInnerScreenY, (aScreenY), NS_ERROR_NOT_INITIALIZED);
+
+  // For non-chrome callers, always return 0 to prevent fingerprinting.
+  if (!IsChrome()) {
+    *aScreenY = 0;
+    return NS_OK;
+  }
 
   nsRect r = GetInnerScreenRect();
   *aScreenY = nsPresContext::AppUnitsToFloatCSSPixels(r.y);
@@ -4611,6 +4637,12 @@ nsGlobalWindow::GetScreenY(int32_t* aScreenY)
   nsCOMPtr<nsIBaseWindow> treeOwnerAsWin = GetTreeOwnerWindow();
   NS_ENSURE_TRUE(treeOwnerAsWin, NS_ERROR_FAILURE);
 
+   // For non-chrome callers, always return 0 to prevent fingerprinting.
+  if (!IsChrome()) {
+    *aScreenY = 0;
+    return NS_OK; 
+  }
+
   int32_t x, y;
 
   NS_ENSURE_SUCCESS(treeOwnerAsWin->GetPosition(&x, &y),
@@ -4649,6 +4681,20 @@ nsGlobalWindow::SetScreenY(int32_t aScreenY)
                     NS_ERROR_FAILURE);
 
   return NS_OK;
+}
+
+bool
+nsGlobalWindow::IsChrome()
+{
+  bool isChrome = false;
+
+  if (mDocShell) {
+    nsRefPtr<nsPresContext> presContext;
+    mDocShell->GetPresContext(getter_AddRefs(presContext));
+    isChrome = (presContext && presContext->IsChrome());
+  }
+
+  return isChrome;
 }
 
 // NOTE: Arguments to this function should have values scaled to

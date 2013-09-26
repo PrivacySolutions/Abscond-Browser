@@ -92,6 +92,10 @@ nsScreen::GetPixelDepth(ErrorResult& aRv)
     return -1;
   }
 
+  // For non-chrome callers, always return 24 to prevent fingerprinting.
+  if (!IsChrome())
+    return 24;
+
   uint32_t depth;
   context->GetDepth(depth);
   return depth;
@@ -128,6 +132,11 @@ nsScreen::GetDeviceContext()
 nsresult
 nsScreen::GetRect(nsRect& aRect)
 {
+  // For non-chrome callers, return window inner rect to prevent fingerprinting.
+  if (!IsChrome()) {
+    return GetWindowInnerRect(aRect);
+  }
+
   nsDeviceContext *context = GetDeviceContext();
 
   if (!context) {
@@ -147,6 +156,11 @@ nsScreen::GetRect(nsRect& aRect)
 nsresult
 nsScreen::GetAvailRect(nsRect& aRect)
 {
+  // For non-chrome callers, return window inner rect to prevent fingerprinting.
+  if (!IsChrome()) {
+    return GetWindowInnerRect(aRect);
+  }
+
   nsDeviceContext *context = GetDeviceContext();
 
   if (!context) {
@@ -426,4 +440,45 @@ nsScreen::FullScreenEventListener::HandleEvent(nsIDOMEvent* aEvent)
   hal::UnlockScreenOrientation();
 
   return NS_OK;
+}
+
+bool
+nsScreen::IsChrome()
+{
+  bool isChrome = false;
+  nsCOMPtr<nsPIDOMWindow> owner = GetOwner();
+  if (owner)
+    isChrome = IsChromeType(owner->GetDocShell());
+
+  return isChrome;
+}
+
+nsresult
+nsScreen::GetDOMWindow(nsIDOMWindow **aResult)
+{
+  NS_ENSURE_ARG_POINTER(aResult);
+  *aResult = NULL;
+
+  nsCOMPtr<nsPIDOMWindow> owner = GetOwner();
+  if (!owner)
+    return NS_ERROR_FAILURE;
+
+  nsCOMPtr<nsIDOMWindow> win = do_QueryInterface(owner);
+  NS_ENSURE_STATE(win);
+  win.swap(*aResult);
+
+  return NS_OK;
+}
+
+nsresult
+nsScreen::GetWindowInnerRect(nsRect& aRect)
+{
+  aRect.x = 0;
+  aRect.y = 0;
+  nsCOMPtr<nsIDOMWindow> win;
+  nsresult rv = GetDOMWindow(getter_AddRefs(win));
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = win->GetInnerWidth(&aRect.width);
+  NS_ENSURE_SUCCESS(rv, rv);
+  return win->GetInnerHeight(&aRect.height);
 }
