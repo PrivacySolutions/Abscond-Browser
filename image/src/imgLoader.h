@@ -21,6 +21,7 @@
 #include "nsIChannelPolicy.h"
 #include "nsIProgressEventSink.h"
 #include "nsIChannel.h"
+#include "mozIThirdPartyUtil.h"
 
 class imgLoader;
 class imgRequest;
@@ -266,10 +267,12 @@ public:
 
   nsresult InitCache();
 
-  bool RemoveFromCache(nsIURI *aKey);
+  nsAutoCString GetCacheKey(nsIURI *firstPartyURI,
+                            nsIURI *imgURI,
+                            bool *isIsolated);
   bool RemoveFromCache(imgCacheEntry *entry);
-
-  bool PutIntoCache(nsIURI *key, imgCacheEntry *entry);
+  bool PutIntoCache(nsAutoCString key, imgCacheEntry *entry);
+  bool RemoveMatchingUrlsFromCache(nsIURI *aKey);
 
   // Returns true if we should prefer evicting cache entry |two| over cache
   // entry |one|.
@@ -308,13 +311,13 @@ public:
   // HasObservers(). The request's cache entry will be re-set before this
   // happens, by calling imgRequest::SetCacheEntry() when an entry with no
   // observers is re-requested.
-  bool SetHasNoProxies(nsIURI *key, imgCacheEntry *entry);
-  bool SetHasProxies(nsIURI *key);
+  bool SetHasNoProxies(nsIURI *imgURI, imgCacheEntry *entry);
+  bool SetHasProxies(nsIURI *firstPartyURI, nsIURI *imgURI);
 
 private: // methods
 
-  bool ValidateEntry(imgCacheEntry *aEntry, nsIURI *aKey,
-                       nsIURI *aInitialDocumentURI, nsIURI *aReferrerURI,
+  bool ValidateEntry(imgCacheEntry *aEntry, nsIURI *aURI,
+                       nsIURI *aFirstPartyURI, nsIURI *aReferrerURI,
                        nsILoadGroup *aLoadGroup,
                        imgINotificationObserver *aObserver, nsISupports *aCX,
                        nsLoadFlags aLoadFlags, bool aCanMakeNewChannel,
@@ -351,9 +354,14 @@ private: // methods
   void CacheEntriesChanged(nsIURI *aURI, int32_t sizediff = 0);
   void CheckCacheLimits(imgCacheTable &cache, imgCacheQueue &queue);
 
+  bool RemoveKeyFromCache(imgCacheTable &cache, 
+                          imgCacheQueue &queue,
+                          nsAutoCString key);
+
 private: // data
   friend class imgCacheEntry;
   friend class imgMemoryReporter;
+  friend class imgRequest;
 
   imgCacheTable mCache;
   imgCacheQueue mCacheQueue;
@@ -365,6 +373,7 @@ private: // data
   static uint32_t sCacheMaxSize;
   static imgMemoryReporter* sMemReporter;
 
+  static nsCOMPtr<mozIThirdPartyUtil> sThirdPartyUtilSvc;
   nsCString mAcceptHeader;
 
   nsAutoPtr<imgCacheExpirationTracker> mCacheTracker;

@@ -200,7 +200,8 @@ nsAlertsIconListener::StartRequest(const nsAString & aImageUrl)
   if (!il)
     return ShowAlert(NULL);
 
-  return il->LoadImageXPCOM(imageUri, nullptr, nullptr, nullptr, nullptr, this,
+  // XXX: Hrmm.... Bypass cache, or isolate to imageUrl?
+  return il->LoadImageXPCOM(imageUri, imageURI, nullptr, nullptr, nullptr, this,
 			    nullptr, nsIRequest::LOAD_NORMAL, nullptr, nullptr,
 			    getter_AddRefs(mIconRequest));
 }

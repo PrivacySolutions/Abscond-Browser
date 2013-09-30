@@ -167,6 +167,7 @@
 #include "nsWrapperCacheInlines.h"
 #include "nsXULPopupManager.h"
 #include "xpcprivate.h" // nsXPConnect
+#include "mozIThirdPartyUtil.h"
 
 #ifdef IBMBIDI
 #include "nsIBidiKeyboard.h"
@@ -2675,8 +2676,6 @@ nsContentUtils::LoadImage(nsIURI* aURI, nsIDocument* aLoadingDocument,
   nsCOMPtr<nsILoadGroup> loadGroup = aLoadingDocument->GetDocumentLoadGroup();
   NS_ASSERTION(loadGroup, "Could not get loadgroup; onload may fire too early");
 
-  nsIURI *documentURI = aLoadingDocument->GetDocumentURI();
-
   // check for a Content Security Policy to pass down to the channel that
   // will get created to load the image
   nsCOMPtr<nsIChannelPolicy> channelPolicy;
@@ -2693,11 +2692,15 @@ nsContentUtils::LoadImage(nsIURI* aURI, nsIDocument* aLoadingDocument,
     
   // Make the URI immutable so people won't change it under us
   NS_TryToSetImmutable(aURI);
+ 
+  nsCOMPtr<nsIURI> firstPartyURI;
+  nsCOMPtr<mozIThirdPartyUtil> thirdPartySvc
+                               = do_GetService(THIRDPARTYUTIL_CONTRACTID);
+  thirdPartySvc->GetFirstPartyURI(nullptr, aLoadingDocument,
+                                  getter_AddRefs(firstPartyURI));
 
-  // XXXbz using "documentURI" for the initialDocumentURI is not quite
-  // right, but the best we can do here...
   return imgLoader->LoadImage(aURI,                 /* uri to load */
-                              documentURI,          /* initialDocumentURI */
+                              firstPartyURI,        /* firstPartyURI */
                               aReferrer,            /* referrer */
                               aLoadingPrincipal,    /* loading principal */
                               loadGroup,            /* loadgroup */

@@ -89,6 +89,7 @@ imgRequest::~imgRequest()
 
 nsresult imgRequest::Init(nsIURI *aURI,
                           nsIURI *aCurrentURI,
+                          nsIURI *aFirstPartyURI,
                           nsIRequest *aRequest,
                           nsIChannel *aChannel,
                           imgCacheEntry *aCacheEntry,
@@ -108,6 +109,7 @@ nsresult imgRequest::Init(nsIURI *aURI,
 
   mURI = aURI;
   mCurrentURI = aCurrentURI;
+  mFirstPartyURI = aFirstPartyURI;
   mRequest = aRequest;
   mChannel = aChannel;
   mTimedChannel = do_QueryInterface(mChannel);
@@ -169,7 +171,7 @@ void imgRequest::AddProxy(imgRequestProxy *proxy)
   // proxies.
   if (GetStatusTracker().ConsumerCount() == 0) {
     NS_ABORT_IF_FALSE(mURI, "Trying to SetHasProxies without key uri.");
-    mLoader->SetHasProxies(mURI);
+    mLoader->SetHasProxies(mFirstPartyURI, mURI);
   }
 
   GetStatusTracker().AddConsumer(proxy);
@@ -296,8 +298,11 @@ void imgRequest::RemoveFromCache()
     // mCacheEntry is nulled out when we have no more observers.
     if (mCacheEntry)
       mLoader->RemoveFromCache(mCacheEntry);
-    else
-      mLoader->RemoveFromCache(mURI);
+    else {
+      mLoader->RemoveKeyFromCache(mLoader->GetCache(mURI),
+                                  mLoader->GetCacheQueue(mURI),
+                                  mLoader->GetCacheKey(mFirstPartyURI, mURI, nullptr));
+    }
   }
 
   mCacheEntry = nullptr;

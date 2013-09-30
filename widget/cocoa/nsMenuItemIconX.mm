@@ -39,6 +39,7 @@
 #include "gfxImageSurface.h"
 #include "imgIContainer.h"
 #include "nsCocoaUtils.h"
+#include "mozIThirdPartyUtil.h"
 #include "nsContentUtils.h"
 
 static const uint32_t kIconWidth = 16;
@@ -313,9 +314,15 @@ nsMenuItemIconX::LoadIcon(nsIURI* aIconURI)
       [mNativeMenuItem setImage:sPlaceholderIconImage];
   }
 
+  nsCOMPtr<nsIURI> firstPartyURI;
+  nsCOMPtr<mozIThirdPartyUtil> thirdPartySvc
+                               = do_GetService(THIRDPARTYUTIL_CONTRACTID);
+  thirdPartySvc->GetFirstPartyURI(nullptr, document,
+                                  getter_AddRefs(firstPartyURI));
+
   // Passing in null for channelPolicy here since nsMenuItemIconX::LoadIcon is
   // not exposed to web content
-  nsresult rv = loader->LoadImage(aIconURI, nullptr, nullptr, nullptr, loadGroup, this,
+  nsresult rv = loader->LoadImage(aIconURI, firstPartyURI, nullptr, nullptr, loadGroup, this,
                                    nullptr, nsIRequest::LOAD_NORMAL, nullptr,
                                    nullptr, getter_AddRefs(mIconRequest));
   if (NS_FAILED(rv)) return rv;

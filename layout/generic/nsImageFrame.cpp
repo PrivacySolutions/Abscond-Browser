@@ -65,6 +65,7 @@
 #include "nsError.h"
 #include "nsBidiUtils.h"
 #include "nsBidiPresUtils.h"
+#include "mozIThirdPartyUtil.h"
 
 #include "gfxRect.h"
 #include "ImageLayers.h"
@@ -1790,6 +1791,7 @@ nsImageFrame::LoadIcon(const nsAString& aSpec,
 {
   nsresult rv = NS_OK;
   NS_PRECONDITION(!aSpec.IsEmpty(), "What happened??");
+  NS_PRECONDITION(aPresContext, "NULL PresContext");
 
   if (!sIOService) {
     rv = CallGetService(NS_IOSERVICE_CONTRACTID, &sIOService);
@@ -1808,8 +1810,16 @@ nsImageFrame::LoadIcon(const nsAString& aSpec,
   // For icon loads, we don't need to merge with the loadgroup flags
   nsLoadFlags loadFlags = nsIRequest::LOAD_NORMAL;
 
+  nsCOMPtr<nsIURI> firstPartyURI;
+  nsCOMPtr<mozIThirdPartyUtil> thirdPartySvc
+      = do_GetService(THIRDPARTYUTIL_CONTRACTID);
+  // XXX: Should we pass the loadgroup, too? Is document ever likely
+  // to be unset?
+  thirdPartySvc->GetFirstPartyURI(nullptr, aPresContext->Document(),
+                                 getter_AddRefs(firstPartyURI));
+ 
   return il->LoadImage(realURI,     /* icon URI */
-                       nullptr,      /* initial document URI; this is only
+                       firstPartyURI, /* initial document URI; this is only
                                        relevant for cookies, so does not
                                        apply to icons. */
                        nullptr,      /* referrer (not relevant for icons) */
