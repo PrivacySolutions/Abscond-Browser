@@ -27,11 +27,15 @@ public:
     nsHttpPipeline();
     virtual ~nsHttpPipeline();
 
+    uint32_t RequestDepth() { return mRequestQ.Length(); }
+
 private:
     nsresult FillSendBuf();
 
     static NS_METHOD ReadFromPipe(nsIInputStream *, void *, const char *,
                                   uint32_t, uint32_t, uint32_t *);
+
+    void ShuffleTransOrder(uint32_t);
 
     // convenience functions
     nsAHttpTransaction *Request(int32_t i)
