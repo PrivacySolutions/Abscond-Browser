@@ -48,7 +48,9 @@ DEFINES     += -DHAVE_USR_LIB64_DIR
 endif
 endif
 
-LOCAL_INCLUDES	+= -I..
+LOCAL_INCLUDES	+=	\
+		-I.. \
+		-I$(srcdir)/../build
 
 ifeq ($(MOZ_PLATFORM_MAEMO),5)
 CFLAGS          += $(MOZ_DBUS_CFLAGS)
