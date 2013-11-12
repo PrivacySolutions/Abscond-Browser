@@ -17,7 +17,9 @@ CPP_SOURCES += [
     'string_utilities.cc',
 ]
 
-HOST_LIBRARY_NAME = 'host_breakpad_mac_common_s'
+if CONFIG['MOZ_CRASHREPORTER']:
+    HOST_LIBRARY_NAME = 'host_breakpad_mac_common_s'
+
 CMMSRCS += [
     'MachIPC.mm',
 ]

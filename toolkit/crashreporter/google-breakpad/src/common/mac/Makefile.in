@@ -23,11 +23,13 @@ DISABLED_CMMSRCS = \
   MachIPC.mm \
   $(NULL)
 
+ifdef MOZ_CRASHREPORTER
 HOST_CPPSRCS = $(CPPSRCS)
 
 HOST_CMMSRCS = \
   dump_syms.mm \
   $(NULL)
+endif
 
 # need static lib
 FORCE_STATIC_LIB = 1
