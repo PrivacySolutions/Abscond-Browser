@@ -316,7 +316,7 @@ def main():
         if options.uselist:
             args.makelist()
 
-        if options.verbose:
+        if True: #options.verbose:
             print_command(sys.stderr, args)
         proc = subprocess.Popen(args, stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
         (stdout, stderr) = proc.communicate()

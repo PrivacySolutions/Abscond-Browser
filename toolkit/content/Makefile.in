@@ -43,7 +43,7 @@ ifneq (,$(filter http%,$(source_repo)))
   DEFINES += -DSOURCE_REPO="$(source_repo)"
 endif
 
-BUILD_HOSTNAME = $(shell hostname -s || hostname)
-DEFINES += -DBUILD_HOSTNAME="$(BUILD_HOSTNAME)"
+# BUILD_HOSTNAME = $(shell hostname -s || hostname)
+# DEFINES += -DBUILD_HOSTNAME="$(BUILD_HOSTNAME)"
 
 include $(topsrcdir)/config/rules.mk

@@ -25,11 +25,11 @@ def addEntriesToListFile(listFile, entries):
       f.close()
     else:
       existing = set()
-    f = open(listFile, 'a')
     for e in entries:
       if e not in existing:
-        f.write("{0}\n".format(e))
         existing.add(e)
+    f = open(listFile, 'w')
+    f.write("\n".join(sorted(existing))+"\n")
     f.close()
   finally:
     lock = None
