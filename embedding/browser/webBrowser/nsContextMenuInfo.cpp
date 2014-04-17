@@ -306,13 +306,13 @@ nsContextMenuInfo::GetBackgroundImageRequestInternal(nsIDOMNode *aDOMNode, imgRe
 
           nsRefPtr<imgLoader> il = imgLoader::GetInstance();
           NS_ENSURE_TRUE(il, NS_ERROR_FAILURE);
-          nsCOMPtr<nsIURI> firstPartyURI;
+          nsCOMPtr<nsIURI> firstPartyIsolationURI;
           nsCOMPtr<mozIThirdPartyUtil> thirdPartySvc
               = do_GetService(THIRDPARTYUTIL_CONTRACTID);
-          thirdPartySvc->GetFirstPartyURI(nullptr, doc,
-                                          getter_AddRefs(firstPartyURI));
+          thirdPartySvc->GetFirstPartyIsolationURI(nullptr, doc,
+                                                   getter_AddRefs(firstPartyIsolationURI));
 
-          return il->LoadImage(bgUri, firstPartyURI, nullptr, principal, nullptr,
+          return il->LoadImage(bgUri, firstPartyIsolationURI, nullptr, principal, nullptr,
                                nullptr, nullptr, nsIRequest::LOAD_NORMAL,
                                nullptr, channelPolicy, aRequest);
         }

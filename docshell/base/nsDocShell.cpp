@@ -2698,18 +2698,18 @@ nsDocShell::GetSessionStorageForPrincipal(nsIPrincipal* aPrincipal,
       return NS_ERROR_FAILURE;
 
     nsCOMPtr<nsIDocument> doc(do_GetInterface(GetAsSupports(this)));
-    nsCOMPtr<nsIURI> firstPartyURI;
-    nsresult rv = thirdPartyUtil->GetFirstPartyURI(nullptr, doc,
-                                           getter_AddRefs(firstPartyURI));
+    nsCOMPtr<nsIURI> firstPartyIsolationURI;
+    nsresult rv = thirdPartyUtil->GetFirstPartyIsolationURI(nullptr, doc,
+                                           getter_AddRefs(firstPartyIsolationURI));
     NS_ENSURE_SUCCESS(rv, rv);
 
     if (aCreate) {
-        return manager->CreateStorageForFirstParty(firstPartyURI,
+        return manager->CreateStorageForFirstParty(firstPartyIsolationURI,
                                       aPrincipal, aDocumentURI,
                                       mInPrivateBrowsing, aStorage);
     }
 
-    return manager->GetStorageForFirstParty(firstPartyURI, aPrincipal,
+    return manager->GetStorageForFirstParty(firstPartyIsolationURI, aPrincipal,
                                             mInPrivateBrowsing, aStorage);
 }
 

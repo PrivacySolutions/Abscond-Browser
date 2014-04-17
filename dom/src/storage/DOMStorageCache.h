@@ -72,7 +72,7 @@ public:
   virtual ~DOMStorageCache();
 
   void Init(DOMStorageManager* aManager, bool aPersistent,
-            nsIURI* aFirstPartyURI, nsIPrincipal* aPrincipal,
+            nsIURI* aFirstPartyIsolationURI, nsIPrincipal* aPrincipal,
             const nsACString& aQuotaScope);
 
   // Copies all data from the other storage.
@@ -97,7 +97,7 @@ public:
 
   nsTArray<nsString>* GetKeys(const DOMStorage* aStorage);
 
-  nsIURI* FirstPartyURI() const { return mFirstPartyURI; }
+  nsIURI* FirstPartyIsolationURI() const { return mFirstPartyIsolationURI; }
 
   // Whether the principal equals principal the cache was created for
   bool CheckPrincipal(nsIPrincipal* aPrincipal) const;
@@ -177,7 +177,7 @@ private:
   nsCOMPtr<nsITimer> mKeepAliveTimer;
 
   // The first party URI associated with this cache.
-  nsCOMPtr<nsIURI> mFirstPartyURI;
+  nsCOMPtr<nsIURI> mFirstPartyIsolationURI;
 
   // Principal the cache has been initially created for, this is used only
   // for sessionStorage access checks since sessionStorage objects are strictly

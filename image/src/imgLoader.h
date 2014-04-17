@@ -267,7 +267,7 @@ public:
 
   nsresult InitCache();
 
-  nsAutoCString GetCacheKey(nsIURI *firstPartyURI,
+  nsAutoCString GetCacheKey(nsIURI *firstPartyIsolationURI,
                             nsIURI *imgURI,
                             bool *isIsolated);
   bool RemoveFromCache(imgCacheEntry *entry);
@@ -312,12 +312,12 @@ public:
   // happens, by calling imgRequest::SetCacheEntry() when an entry with no
   // observers is re-requested.
   bool SetHasNoProxies(nsIURI *imgURI, imgCacheEntry *entry);
-  bool SetHasProxies(nsIURI *firstPartyURI, nsIURI *imgURI);
+  bool SetHasProxies(nsIURI *firstPartyIsolationURI, nsIURI *imgURI);
 
 private: // methods
 
   bool ValidateEntry(imgCacheEntry *aEntry, nsIURI *aURI,
-                       nsIURI *aFirstPartyURI, nsIURI *aReferrerURI,
+                       nsIURI *aFirstPartyIsolationURI, nsIURI *aReferrerURI,
                        nsILoadGroup *aLoadGroup,
                        imgINotificationObserver *aObserver, nsISupports *aCX,
                        nsLoadFlags aLoadFlags, bool aCanMakeNewChannel,

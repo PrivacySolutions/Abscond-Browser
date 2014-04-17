@@ -1810,26 +1810,26 @@ nsImageFrame::LoadIcon(const nsAString& aSpec,
   // For icon loads, we don't need to merge with the loadgroup flags
   nsLoadFlags loadFlags = nsIRequest::LOAD_NORMAL;
 
-  nsCOMPtr<nsIURI> firstPartyURI;
+  nsCOMPtr<nsIURI> firstPartyIsolationURI;
   nsCOMPtr<mozIThirdPartyUtil> thirdPartySvc
       = do_GetService(THIRDPARTYUTIL_CONTRACTID);
   // XXX: Should we pass the loadgroup, too? Is document ever likely
   // to be unset?
-  thirdPartySvc->GetFirstPartyURI(nullptr, aPresContext->Document(),
-                                 getter_AddRefs(firstPartyURI));
+  thirdPartySvc->GetFirstPartyIsolationURI(nullptr, aPresContext->Document(),
+                                           getter_AddRefs(firstPartyIsolationURI));
  
-  return il->LoadImage(realURI,     /* icon URI */
-                       firstPartyURI, /* initial document URI; this is only
-                                       relevant for cookies, so does not
-                                       apply to icons. */
-                       nullptr,      /* referrer (not relevant for icons) */
-                       nullptr,      /* principal (not relevant for icons) */
+  return il->LoadImage(realURI,                /* icon URI */
+                       firstPartyIsolationURI, /* initial document URI; this is only
+                                                  relevant for cookies, so does not
+                                                  apply to icons. */
+                       nullptr,                /* referrer (not relevant for icons) */
+                       nullptr,                /* principal (not relevant for icons) */
                        loadGroup,
                        gIconLoad,
-                       nullptr,      /* Not associated with any particular document */
+                       nullptr,                /* Not associated with any particular document */
                        loadFlags,
                        nullptr,
-                       nullptr,      /* channel policy not needed */
+                       nullptr,                /* channel policy not needed */
                        aRequest);
 }
 

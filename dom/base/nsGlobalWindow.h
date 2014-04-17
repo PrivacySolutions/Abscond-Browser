@@ -1092,7 +1092,7 @@ protected:
   nsresult RequestAnimationFrame(const nsIDocument::FrameRequestCallbackHolder& aCallback,
                                  int32_t* aHandle);
 
-  nsresult GetFirstPartyURI(nsIURI** aFirstPartyURI);
+  nsresult GetFirstPartyIsolationURI(nsIURI** aFirstPartyIsolationURI);
 
   // When adding new member variables, be careful not to create cycles
   // through JavaScript.  If there is any chance that a member variable

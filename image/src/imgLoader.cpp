@@ -427,7 +427,7 @@ static nsresult NewImageChannel(nsIChannel **aResult,
                                 // aLoadingPrincipal and false otherwise.
                                 bool *aForcePrincipalCheckForCacheEntry,
                                 nsIURI *aURI,
-                                nsIURI *aFirstPartyURI,
+                                nsIURI *aFirstPartyIsolationURI,
                                 nsIURI *aReferringURI,
                                 nsILoadGroup *aLoadGroup,
                                 const nsCString& aAcceptHeader,
@@ -479,7 +479,7 @@ static nsresult NewImageChannel(nsIChannel **aResult,
 
     nsCOMPtr<nsIHttpChannelInternal> httpChannelInternal = do_QueryInterface(newHttpChannel);
     NS_ENSURE_TRUE(httpChannelInternal, NS_ERROR_UNEXPECTED);
-    httpChannelInternal->SetDocumentURI(aFirstPartyURI);
+    httpChannelInternal->SetDocumentURI(aFirstPartyIsolationURI);
     newHttpChannel->SetReferrer(aReferringURI);
   }
 
@@ -1107,7 +1107,7 @@ bool imgLoader::SetHasNoProxies(nsIURI *imgURI, imgCacheEntry *entry)
   return true;
 }
 
-bool imgLoader::SetHasProxies(nsIURI *firstPartyURI, nsIURI *imgURI)
+bool imgLoader::SetHasProxies(nsIURI *firstPartyIsolationURI, nsIURI *imgURI)
 {
   VerifyCacheSizes();
 
@@ -1118,7 +1118,7 @@ bool imgLoader::SetHasProxies(nsIURI *firstPartyURI, nsIURI *imgURI)
 
   LOG_STATIC_FUNC_WITH_PARAM(GetImgLog(), "imgLoader::SetHasProxies", "uri", spec.get());
 
-  nsAutoCString key = GetCacheKey(firstPartyURI, imgURI, nullptr);
+  nsAutoCString key = GetCacheKey(firstPartyIsolationURI, imgURI, nullptr);
   nsRefPtr<imgCacheEntry> entry;
   if (cache.Get(key, getter_AddRefs(entry)) && entry && entry->HasNoProxies()) {
     imgCacheQueue &queue = GetCacheQueue(imgURI);
@@ -1173,7 +1173,7 @@ void imgLoader::CheckCacheLimits(imgCacheTable &cache, imgCacheQueue &queue)
 
 bool imgLoader::ValidateRequestWithNewChannel(imgRequest *request,
                                                 nsIURI *aURI,
-                                                nsIURI *aFirstPartyURI,
+                                                nsIURI *aFirstPartyIsolationURI,
                                                 nsIURI *aReferrerURI,
                                                 nsILoadGroup *aLoadGroup,
                                                 imgINotificationObserver *aObserver,
@@ -1223,7 +1223,7 @@ bool imgLoader::ValidateRequestWithNewChannel(imgRequest *request,
     rv = NewImageChannel(getter_AddRefs(newChannel),
                          &forcePrincipalCheck,
                          aURI,
-                         aFirstPartyURI,
+                         aFirstPartyIsolationURI,
                          aReferrerURI,
                          aLoadGroup,
                          mAcceptHeader,
@@ -1293,7 +1293,7 @@ bool imgLoader::ValidateRequestWithNewChannel(imgRequest *request,
 
 bool imgLoader::ValidateEntry(imgCacheEntry *aEntry,
                                 nsIURI *aURI,
-                                nsIURI *aFirstPartyURI,
+                                nsIURI *aFirstPartyIsolationURI,
                                 nsIURI *aReferrerURI,
                                 nsILoadGroup *aLoadGroup,
                                 imgINotificationObserver *aObserver,
@@ -1404,7 +1404,7 @@ bool imgLoader::ValidateEntry(imgCacheEntry *aEntry,
   if (validateRequest && aCanMakeNewChannel) {
     LOG_SCOPE(GetImgLog(), "imgLoader::ValidateRequest |cache hit| must validate");
 
-    return ValidateRequestWithNewChannel(request, aURI, aFirstPartyURI,
+    return ValidateRequestWithNewChannel(request, aURI, aFirstPartyIsolationURI,
                                          aReferrerURI, aLoadGroup, aObserver,
                                          aCX, aLoadFlags, aProxyRequest, aPolicy,
                                          aLoadingPrincipal, aCORSMode);
@@ -1475,12 +1475,12 @@ bool imgLoader::RemoveFromCache(imgCacheEntry *entry)
   nsRefPtr<imgRequest> request(getter_AddRefs(entry->GetRequest()));
   if (request) {
     nsCOMPtr<nsIURI> imgURI = request->mURI;
-    nsCOMPtr<nsIURI> firstPartyURI = request->mFirstPartyURI;
+    nsCOMPtr<nsIURI> firstPartyIsolationURI = request->mFirstPartyIsolationURI;
 
     if (imgURI) {
       imgCacheTable &cache = GetCache(imgURI);
       imgCacheQueue &queue = GetCacheQueue(imgURI);
-      nsAutoCString spec = GetCacheKey(firstPartyURI, imgURI, nullptr);
+      nsAutoCString spec = GetCacheKey(firstPartyIsolationURI, imgURI, nullptr);
 
       LOG_STATIC_FUNC_WITH_PARAM(GetImgLog(), "imgLoader::RemoveFromCache", "entry's uri", spec.get());
 
@@ -1576,7 +1576,7 @@ NS_IMETHODIMP imgLoader::LoadImageXPCOM(nsIURI *aURI,
 /* imgIRequest loadImage (in nsIURI aURI, in nsIURI aUrlBarURI, in nsIPrincipal loadingPrincipal, in nsILoadGroup aLoadGroup, in imgIDecoderObserver aObserver, in nsISupports aCX, in nsLoadFlags aLoadFlags, in nsISupports cacheKey, in imgIRequest aRequest); */
 
 nsresult imgLoader::LoadImage(nsIURI *aURI,
-			      nsIURI *aFirstPartyURI,
+			      nsIURI *aFirstPartyIsolationURI,
 			      nsIURI *aReferrerURI,
 			      nsIPrincipal* aLoadingPrincipal,
 			      nsILoadGroup *aLoadGroup,
@@ -1595,7 +1595,7 @@ nsresult imgLoader::LoadImage(nsIURI *aURI,
     return NS_ERROR_NULL_POINTER;
 
   bool isIsolated = false;
-  nsAutoCString spec = GetCacheKey(aFirstPartyURI, aURI, &isIsolated);
+  nsAutoCString spec = GetCacheKey(aFirstPartyIsolationURI, aURI, &isIsolated);
 
   LOG_SCOPE_WITH_PARAM(GetImgLog(), "imgLoader::LoadImage", "aURI", spec.get());
 
@@ -1662,7 +1662,7 @@ nsresult imgLoader::LoadImage(nsIURI *aURI,
   imgCacheTable &cache = GetCache(aURI);
 
   if (cache.Get(spec, getter_AddRefs(entry)) && entry) {
-    if (ValidateEntry(entry, aURI, aFirstPartyURI, aReferrerURI,
+    if (ValidateEntry(entry, aURI, aFirstPartyIsolationURI, aReferrerURI,
                       aLoadGroup, aObserver, aCX, requestFlags, true,
                       _retval, aPolicy, aLoadingPrincipal, corsmode)) {
       request = getter_AddRefs(entry->GetRequest());
@@ -1701,7 +1701,7 @@ nsresult imgLoader::LoadImage(nsIURI *aURI,
     rv = NewImageChannel(getter_AddRefs(newChannel),
                          &forcePrincipalCheck,
                          aURI,
-                         aFirstPartyURI,
+                         aFirstPartyIsolationURI,
                          aReferrerURI,
                          aLoadGroup,
                          mAcceptHeader,
@@ -1729,7 +1729,7 @@ nsresult imgLoader::LoadImage(nsIURI *aURI,
       childLoadGroup->SetParentLoadGroup(aLoadGroup);
     newChannel->SetLoadGroup(loadGroup);
 
-    request->Init(aURI, aURI, aFirstPartyURI, loadGroup, newChannel, entry,
+    request->Init(aURI, aURI, aFirstPartyIsolationURI, loadGroup, newChannel, entry,
                   aCX, aLoadingPrincipal, corsmode);
 
     // Pass the inner window ID of the loading document, if possible.
@@ -1838,7 +1838,7 @@ nsresult imgLoader::LoadImage(nsIURI *aURI,
   return NS_OK;
 }
 
-nsAutoCString imgLoader::GetCacheKey(nsIURI *firstPartyURI, nsIURI *imgURI,
+nsAutoCString imgLoader::GetCacheKey(nsIURI *firstPartyIsolationURI, nsIURI *imgURI,
                                      bool *isIsolated)
 {
   NS_ASSERTION(imgURI, "imgLoader::GetCacheKey -- NULL imgURI");
@@ -1850,37 +1850,21 @@ nsAutoCString imgLoader::GetCacheKey(nsIURI *firstPartyURI, nsIURI *imgURI,
     imgURI->GetSpec(spec);
 
   nsAutoCString hostKey;
-  if (firstPartyURI && sThirdPartyUtilSvc)
-    sThirdPartyUtilSvc->GetFirstPartyHostForIsolation(firstPartyURI, hostKey);
+  if (firstPartyIsolationURI && sThirdPartyUtilSvc)
+    sThirdPartyUtilSvc->GetFirstPartyHostForIsolation(firstPartyIsolationURI, hostKey);
 
   if (hostKey.Length() > 0) {
     if (isIsolated)
       *isIsolated = true;
+    // Make a new key using host
+    // FIXME: This might involve a couple more copies than necessary.. 
+    // But man, 18 string types? Who knows which one I need to use to do
+    // this cheaply..
+    return hostKey + nsAutoCString("&") + spec;    
   } else {
-    hostKey = "--NoFirstParty--";
-    nsCOMPtr<nsIConsoleService> consoleSvc =
-                                do_GetService(NS_CONSOLESERVICE_CONTRACTID);
-    if (consoleSvc) {
-      nsAutoString msg(NS_LITERAL_STRING(
-                       "imgLoader::GetCacheKey: NULL firstPartyURI for ")
-                       .get());
-      if (!spec.IsEmpty())
-        msg.AppendASCII(spec.get());
-      else
-        msg.Append(NS_LITERAL_STRING("Unknown URI!").get());
-      consoleSvc->LogStringMessage(msg.get());
-    }
-
-#ifdef DEBUG
-    printf("imgLoader::GetCacheKey: NULL firstPartyURI for %s\n", spec.get());
-#endif
+    // No hostKey found, so don't isolate image to a first party.
+    return spec;
   }
-
-  // Make a new key using host
-  // FIXME: This might involve a couple more copies than necessary.. 
-  // But man, 18 string types? Who knows which one I need to use to do
-  // this cheaply..
-  return hostKey + nsAutoCString("&") + spec;
 }
 
 /* imgIRequest loadImageWithChannelXPCOM(in nsIChannel channel, in imgINotificationObserver aObserver, in nsISupports cx, out nsIStreamListener); */
@@ -1911,16 +1895,16 @@ nsresult imgLoader::LoadImageWithChannel(nsIChannel *channel, imgINotificationOb
   nsCOMPtr<nsIURI> uri;
   channel->GetURI(getter_AddRefs(uri));
 
-  nsCOMPtr<nsIURI> firstPartyURI;
-  sThirdPartyUtilSvc->GetFirstPartyURI(channel, nullptr,
-                                       getter_AddRefs(firstPartyURI));
+  nsCOMPtr<nsIURI> firstPartyIsolationURI;
+  sThirdPartyUtilSvc->GetFirstPartyIsolationURI(channel, nullptr,
+                                                getter_AddRefs(firstPartyIsolationURI));
 
   nsLoadFlags requestFlags = nsIRequest::LOAD_NORMAL;
   channel->GetLoadFlags(&requestFlags);
 
   nsRefPtr<imgCacheEntry> entry;
   imgCacheTable &cache = GetCache(uri);
-  nsAutoCString spec = GetCacheKey(firstPartyURI, uri, nullptr);
+  nsAutoCString spec = GetCacheKey(firstPartyIsolationURI, uri, nullptr);
 
   if (requestFlags & nsIRequest::LOAD_BYPASS_CACHE) {
     imgCacheQueue &queue = GetCacheQueue(uri);
@@ -2001,7 +1985,7 @@ nsresult imgLoader::LoadImageWithChannel(nsIChannel *channel, imgINotificationOb
     channel->GetOriginalURI(getter_AddRefs(originalURI));
 
     // No principal specified here, because we're not passed one.
-    request->Init(originalURI, uri, firstPartyURI, channel, channel, entry,
+    request->Init(originalURI, uri, firstPartyIsolationURI, channel, channel, entry,
                   aCX, nullptr, imgIRequest::CORS_NONE);
 
     ProxyListener *pl = new ProxyListener(static_cast<nsIStreamListener *>(request.get()));
@@ -2013,7 +1997,7 @@ nsresult imgLoader::LoadImageWithChannel(nsIChannel *channel, imgINotificationOb
     NS_RELEASE(pl);
 
     bool isIsolated = false;
-    nsAutoCString key = GetCacheKey(firstPartyURI, originalURI, &isIsolated);
+    nsAutoCString key = GetCacheKey(firstPartyIsolationURI, originalURI, &isIsolated);
     if (isIsolated) // Try to add the new request into the cache.
       PutIntoCache(key, entry);
 
@@ -2301,7 +2285,7 @@ NS_IMETHODIMP imgCacheValidator::OnStartRequest(nsIRequest *aRequest, nsISupport
 
   int32_t corsmode = mRequest->GetCORSMode();
   nsCOMPtr<nsIPrincipal> loadingPrincipal = mRequest->GetLoadingPrincipal();
-  nsCOMPtr<nsIURI> firstPartyURI = mRequest->mFirstPartyURI;
+  nsCOMPtr<nsIURI> firstPartyIsolationURI = mRequest->mFirstPartyIsolationURI;
 
   // Doom the old request's cache entry
   mRequest->RemoveFromCache();
@@ -2312,7 +2296,7 @@ NS_IMETHODIMP imgCacheValidator::OnStartRequest(nsIRequest *aRequest, nsISupport
   // We use originalURI here to fulfil the imgIRequest contract on GetURI.
   nsCOMPtr<nsIURI> originalURI;
   channel->GetOriginalURI(getter_AddRefs(originalURI));
-  mNewRequest->Init(originalURI, uri, firstPartyURI, aRequest, channel,
+  mNewRequest->Init(originalURI, uri, firstPartyIsolationURI, aRequest, channel,
                     mNewEntry, mContext, loadingPrincipal, corsmode);
 
   mDestListener = new ProxyListener(mNewRequest);
@@ -2321,7 +2305,7 @@ NS_IMETHODIMP imgCacheValidator::OnStartRequest(nsIRequest *aRequest, nsISupport
   // the cache before the proxies' ownership changes, because adding a proxy
   // changes the caching behaviour for imgRequests.
   bool isIsolated = false;
-  nsAutoCString key = mImgLoader->GetCacheKey(firstPartyURI, originalURI,
+  nsAutoCString key = mImgLoader->GetCacheKey(firstPartyIsolationURI, originalURI,
                                              &isIsolated);
   if (isIsolated)
     mImgLoader->PutIntoCache(key, mNewEntry);

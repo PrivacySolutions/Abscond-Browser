@@ -2693,22 +2693,22 @@ nsContentUtils::LoadImage(nsIURI* aURI, nsIDocument* aLoadingDocument,
   // Make the URI immutable so people won't change it under us
   NS_TryToSetImmutable(aURI);
  
-  nsCOMPtr<nsIURI> firstPartyURI;
+  nsCOMPtr<nsIURI> firstPartyIsolationURI;
   nsCOMPtr<mozIThirdPartyUtil> thirdPartySvc
                                = do_GetService(THIRDPARTYUTIL_CONTRACTID);
-  thirdPartySvc->GetFirstPartyURI(nullptr, aLoadingDocument,
-                                  getter_AddRefs(firstPartyURI));
+  thirdPartySvc->GetFirstPartyIsolationURI(nullptr, aLoadingDocument,
+                                           getter_AddRefs(firstPartyIsolationURI));
 
-  return imgLoader->LoadImage(aURI,                 /* uri to load */
-                              firstPartyURI,        /* firstPartyURI */
-                              aReferrer,            /* referrer */
-                              aLoadingPrincipal,    /* loading principal */
-                              loadGroup,            /* loadgroup */
-                              aObserver,            /* imgINotificationObserver */
-                              aLoadingDocument,     /* uniquification key */
-                              aLoadFlags,           /* load flags */
-                              nullptr,               /* cache key */
-                              channelPolicy,        /* CSP info */
+  return imgLoader->LoadImage(aURI,                   /* uri to load */
+                              firstPartyIsolationURI, /* firstPartyIsolationURI, NULL if isolation is not active */
+                              aReferrer,              /* referrer */
+                              aLoadingPrincipal,      /* loading principal */
+                              loadGroup,              /* loadgroup */
+                              aObserver,              /* imgINotificationObserver */
+                              aLoadingDocument,       /* uniquification key */
+                              aLoadFlags,             /* load flags */
+                              nullptr,                /* cache key */
+                              channelPolicy,          /* CSP info */
                               aRequest);
 }
 
