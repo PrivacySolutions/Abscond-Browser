@@ -164,4 +164,34 @@ Omnijar::GetURIString(Type aType, nsACString &result)
     return NS_OK;
 }
 
+bool
+Omnijar::RebaseFilename(const nsCString& filename, const nsCString& oldBase, const nsCString& newBase, nsACString &result) {
+    PRInt32 pos = filename.Find(oldBase);
+    PRInt32 pathLen = filename.Length() - pos - oldBase.Length();
+    if (pos > -1 && pathLen > -1 && pathLen <= filename.Length()) {
+        nsAutoCString path;
+        filename.Right(path, pathLen);
+        result = newBase + path;
+        return true;
+    }
+    result = filename;
+    return false;
+}
+
+void
+Omnijar::ConvertToResourceFilename(const nsCString& filename, nsACString &result) {
+    if (StringBeginsWith(filename, NS_LITERAL_CSTRING("file://"))
+        || StringBeginsWith(filename, NS_LITERAL_CSTRING("jar:"))) {
+        if (RebaseFilename(filename, NS_LITERAL_CSTRING("/browser/omni.ja!/"),
+                           NS_LITERAL_CSTRING("resource://app/"), result)) {
+            return;
+        }
+        if (RebaseFilename(filename, NS_LITERAL_CSTRING("/omni.ja!/"),
+                           NS_LITERAL_CSTRING("resource://gre/"), result)) {
+            return;
+        }
+    }
+    result = filename;
+}
+
 } /* namespace mozilla */

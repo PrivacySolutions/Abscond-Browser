@@ -9,6 +9,7 @@
 #include "xpcprivate.h"
 #include "nsError.h"
 #include "nsIUnicodeDecoder.h"
+#include "mozilla/Omnijar.h"
 
 /***************************************************************************/
 /* Quick and dirty mapping of well known result codes to strings. We only
@@ -291,8 +292,13 @@ nsXPCException::Initialize(const char *aMessage, nsresult aResult, const char *a
         // For now, fill in our location details from our stack frame.
         // Later we may allow other locations?
         nsresult rc;
-        if (NS_FAILED(rc = aLocation->GetFilename(&mFilename)))
+        char* rawFilename = nullptr;
+        if (NS_FAILED(rc = aLocation->GetFilename(&rawFilename)))
             return rc;
+        nsAutoCString resourceFilename;
+        mozilla::Omnijar::ConvertToResourceFilename(nsCString(rawFilename), resourceFilename);
+        mFilename = (char *) nsMemory::Clone(resourceFilename.get(), resourceFilename.Length()+1);
+        nsMemory::Free(rawFilename); // allocated by GetFilename
         if (NS_FAILED(rc = aLocation->GetLineNumber(&mLineNumber)))
             return rc;
     } else {

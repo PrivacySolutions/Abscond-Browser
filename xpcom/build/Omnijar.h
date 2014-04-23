@@ -117,12 +117,25 @@ static already_AddRefed<nsZipArchive> GetReader(nsIFile *aPath);
  */
 static nsresult GetURIString(Type aType, nsACString &result);
 
+/**
+ * If the filename contains a "file://" URI, which is an absolute path,
+ * attempts to convert to a "resource://" URI. Otherwise returns the
+ * filename unchanged.
+ */
+static void ConvertToResourceFilename(const nsCString& filename, nsACString &result);
+
 private:
 /**
  * Used internally, respectively by Init() and CleanUp()
  */
 static void InitOne(nsIFile *aPath, Type aType);
 static void CleanUpOne(Type aType);
+/**
+ * Rebases a filename, given a (possibly internal) base directory, and a new
+ * base directory name. E.g.: RebaseFilename("a/b/c","b","d",result) -> result = "d/c".
+ */
+static bool RebaseFilename(const nsCString& filename, const nsCString& oldBase, const nsCString& newBase, nsACString &result);
+
 
 }; /* class Omnijar */
 

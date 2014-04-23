@@ -7,6 +7,7 @@
 /* Implements nsIStackFrame. */
 
 #include "xpcprivate.h"
+#include "mozilla/Omnijar.h"
 
 class XPCJSStackFrame : public nsIStackFrame
 {
@@ -107,9 +108,11 @@ XPCJSStackFrame::CreateStack(JSContext* cx, XPCJSStackFrame** stack)
 	JSAutoCompartment ac(cx, desc->frames[i].script);
         const char* filename = JS_GetScriptFilename(cx, desc->frames[i].script);
         if (filename) {
+            nsAutoCString resourceFilename;
+            mozilla::Omnijar::ConvertToResourceFilename(nsCString(filename), resourceFilename);
             self->mFilename = (char*)
-                nsMemory::Clone(filename,
-                                sizeof(char)*(strlen(filename)+1));
+                nsMemory::Clone(resourceFilename.get(),
+                                sizeof(char)*(resourceFilename.Length()+1));
         }
 
         self->mLineno = desc->frames[i].lineno;

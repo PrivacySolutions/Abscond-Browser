@@ -8,6 +8,7 @@
 /* Data conversion between native and JavaScript types. */
 
 #include "mozilla/Util.h"
+#include "mozilla/Omnijar.h"
 
 #include "xpcprivate.h"
 #include "nsString.h"
@@ -1319,9 +1320,11 @@ XPCConvert::JSErrorToXPCException(const char* message,
             static_cast<const PRUnichar*>(report->uclinebuf);
 
         data = new nsScriptError();
+        nsAutoCString resourceFilename;
+        Omnijar::ConvertToResourceFilename(nsCString(report->filename), resourceFilename);
         data->InitWithWindowID(
             bestMessage,
-            NS_ConvertASCIItoUTF16(report->filename),
+            NS_ConvertASCIItoUTF16(resourceFilename.get()),
             uclinebuf ? nsDependentString(uclinebuf) : EmptyString(),
             report->lineno,
             report->uctokenptr - report->uclinebuf, report->flags,
