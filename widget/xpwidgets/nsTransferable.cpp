@@ -58,6 +58,7 @@ DataStruct::~DataStruct()
 void
 DataStruct::SetData ( nsISupports* aData, uint32_t aDataLen )
 {
+#if 0  // Remove unnecessary disk caching to accommodate https://www.torproject.org/projects/torbrowser/design/#disk-avoidance
   // Now, check to see if we consider the data to be "too large"
   if (aDataLen > kLargeDatasetSize) {
     // if so, cache it to disk instead of memory
@@ -66,6 +67,7 @@ DataStruct::SetData ( nsISupports* aData, uint32_t aDataLen )
     else
 			NS_WARNING("Oh no, couldn't write data to the cache file");   
   } 
+#endif  // #if 0
 
   mData    = aData;
   mDataLen = aDataLen;  
