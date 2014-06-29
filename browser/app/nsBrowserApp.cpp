@@ -32,7 +32,7 @@
 #include "nsStringGlue.h"
 
 // Easy access to a five second startup delay used to get
-// a debugger attached in the metro environment. 
+// a debugger attached in the metro environment.
 // #define DEBUG_delay_start_metro
 
 #ifdef XP_WIN
@@ -78,7 +78,7 @@ static void Output(const char *fmt, ... )
 #if MOZ_WINCONSOLE
   fwprintf_s(stderr, wide_msg);
 #else
-  MessageBoxW(NULL, wide_msg, L"Firefox", MB_OK
+  MessageBoxW(NULL, wide_msg, L"I2P Browser", MB_OK
                                         | MB_ICONERROR
                                         | MB_SETFOREGROUND);
 #endif
@@ -124,7 +124,7 @@ static void AttachToTestHarness()
                               GENERIC_WRITE,
                               FILE_SHARE_WRITE, 0,
                               OPEN_EXISTING, 0, 0);
-  
+
   if (winOut == INVALID_HANDLE_VALUE) {
     OutputDebugStringW(L"Could not create named logging pipe.\n");
     return;
@@ -242,7 +242,7 @@ static int do_main(int argc, char* argv[], nsIFile *xreDirectory)
         if (IsArg(argv[idx], "metrodesktop")) {
           metroOnDesktop = true;
           break;
-        } 
+        }
       }
     }
   }
