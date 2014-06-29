@@ -157,4 +157,4 @@ pref("media.audio_data.enabled", false);
 pref("security.tls.version.max", 3);
 
 // Version placeholder
-pref("torbrowser.version", "UNKNOWN");
+pref("i2pbrowser.version", "UNKNOWN");

@@ -99,7 +99,7 @@ nsAppFileLocationProvider::GetFile(const char *prop, bool *persistent, nsIFile *
     FSRef fileRef;
     nsCOMPtr<nsILocalFileMac> macFile;
 #endif
-    
+
     if (nsCRT::strcmp(prop, NS_APP_APPLICATION_REGISTRY_DIR) == 0)
     {
         rv = GetProductDirectory(getter_AddRefs(localFile));
@@ -236,15 +236,15 @@ nsAppFileLocationProvider::GetFile(const char *prop, bool *persistent, nsIFile *
             rv = (*_retval)->AppendNative(SEARCH_DIR_NAME);
     }
     else if (nsCRT::strcmp(prop, NS_APP_INSTALL_CLEANUP_DIR) == 0)
-    {   
+    {
         // This is cloned so that embeddors will have a hook to override
-        // with their own cleanup dir.  See bugzilla bug #105087 
+        // with their own cleanup dir.  See bugzilla bug #105087
         rv = CloneMozBinDirectory(getter_AddRefs(localFile));
-    } 
+    }
 
     if (localFile && NS_SUCCEEDED(rv))
         return localFile->QueryInterface(NS_GET_IID(nsIFile), (void**)_retval);
-        
+
     return rv;
 }
 
@@ -286,8 +286,8 @@ NS_METHOD nsAppFileLocationProvider::CloneMozBinDirectory(nsIFile **aLocalFile)
 //----------------------------------------------------------------------------------------
 // GetProductDirectory - Gets the directory which contains the application data folder
 //
-// UNIX and WIN   : <App Folder>/TorBrowser/Data/Browser
-// Mac            : <App Folder>/../../TorBrowser/Data/Browser
+// UNIX and WIN   : <App Folder>/AbscondBrowser/Data/Browser
+// Mac            : <App Folder>/../../AbscondBrowser/Data/Browser
 //----------------------------------------------------------------------------------------
 NS_METHOD nsAppFileLocationProvider::GetProductDirectory(nsIFile **aLocalFile, bool aLocal)
 {
@@ -324,7 +324,7 @@ NS_METHOD nsAppFileLocationProvider::GetProductDirectory(nsIFile **aLocalFile, b
     if (!localDir)
         return NS_ERROR_FAILURE;
 
-    rv = localDir->AppendRelativeNativePath(NS_LITERAL_CSTRING("TorBrowser"
+    rv = localDir->AppendRelativeNativePath(NS_LITERAL_CSTRING("AbscondBrowser"
                                        XPCOM_FILE_PATH_SEPARATOR "Data"
                                        XPCOM_FILE_PATH_SEPARATOR "Browser"));
     NS_ENSURE_SUCCESS(rv, rv);
@@ -387,7 +387,7 @@ class nsAppDirectoryEnumerator : public nsISimpleEnumerator
     {
     }
 
-    NS_IMETHOD HasMoreElements(bool *result) 
+    NS_IMETHOD HasMoreElements(bool *result)
     {
         while (!mNext && *mCurrentKey)
         {
@@ -403,7 +403,7 @@ class nsAppDirectoryEnumerator : public nsISimpleEnumerator
         return NS_OK;
     }
 
-    NS_IMETHOD GetNext(nsISupports **result) 
+    NS_IMETHOD GetNext(nsISupports **result)
     {
         NS_ENSURE_ARG_POINTER(result);
         *result = nullptr;
@@ -412,11 +412,11 @@ class nsAppDirectoryEnumerator : public nsISimpleEnumerator
         HasMoreElements(&hasMore);
         if (!hasMore)
             return NS_ERROR_FAILURE;
-            
+
         *result = mNext;
         NS_IF_ADDREF(*result);
         mNext = nullptr;
-        
+
         return *result ? NS_OK : NS_ERROR_FAILURE;
     }
 
@@ -460,13 +460,13 @@ class nsPathsDirectoryEnumerator : public nsAppDirectoryEnumerator
     {
     }
 
-    NS_IMETHOD HasMoreElements(bool *result) 
+    NS_IMETHOD HasMoreElements(bool *result)
     {
         if (mEndPath)
             while (!mNext && *mEndPath)
             {
                 const char *pathVar = mEndPath;
-           
+
                 // skip PATH_SEPARATORs at the begining of the mEndPath
                 while (*pathVar == PATH_SEPARATOR) pathVar++;
 
@@ -503,7 +503,7 @@ nsAppFileLocationProvider::GetFiles(const char *prop, nsISimpleEnumerator **_ret
     NS_ENSURE_ARG_POINTER(_retval);
     *_retval = nullptr;
     nsresult rv = NS_ERROR_FAILURE;
-    
+
     if (!nsCRT::strcmp(prop, NS_APP_PLUGINS_DIR_LIST))
     {
 #ifdef MOZ_WIDGET_COCOA
@@ -531,7 +531,7 @@ nsAppFileLocationProvider::GetFiles(const char *prop, nsISimpleEnumerator **_ret
         *_retval = new nsPathsDirectoryEnumerator(this, keys);
 #endif
         NS_IF_ADDREF(*_retval);
-        rv = *_retval ? NS_OK : NS_ERROR_OUT_OF_MEMORY;        
+        rv = *_retval ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
     }
     if (!nsCRT::strcmp(prop, NS_APP_SEARCH_DIR_LIST))
     {
@@ -542,7 +542,7 @@ nsAppFileLocationProvider::GetFiles(const char *prop, nsISimpleEnumerator **_ret
         }
         *_retval = new nsPathsDirectoryEnumerator(this, keys);
         NS_IF_ADDREF(*_retval);
-        rv = *_retval ? NS_OK : NS_ERROR_OUT_OF_MEMORY;        
+        rv = *_retval ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
     }
     return rv;
 }

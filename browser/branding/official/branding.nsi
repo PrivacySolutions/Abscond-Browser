@@ -8,21 +8,21 @@
 
 # BrandFullNameInternal is used for some registry and file system values
 # instead of BrandFullName and typically should not be modified.
-!define BrandFullNameInternal "Mozilla Firefox"
-!define CompanyName           "Mozilla Corporation"
-!define URLInfoAbout          "https://www.mozilla.org/${AB_CD}/"
-!define URLUpdateInfo         "https://www.mozilla.org/${AB_CD}/firefox/"
+!define BrandFullNameInternal "Abscond"
+!define CompanyName           "Sigterm.no"
+!define URLInfoAbout          "https://sigterm.no/${AB_CD}/"
+!define URLUpdateInfo         "https://sigterm.no/${AB_CD}/abscond/"
 
 ; The OFFICIAL define is a workaround to support different urls for Release and
 ; Beta since they share the same branding when building with other branches that
 ; set the update channel to beta.
 !define OFFICIAL
-!define URLStubDownload "http://download.mozilla.org/?product=firefox-latest&os=win&lang=${AB_CD}"
-!define URLManualDownload "https://www.mozilla.org/${AB_CD}/firefox/installer-help/?channel=release&installer_lang=${AB_CD}"
+!define URLStubDownload "http://download.sigterm.no/?product=abscond-latest&os=win&lang=${AB_CD}"
+!define URLManualDownload "https://sigterm.no/download/${AB_CD}/abscond/installer-help/?channel=release&installer_lang=${AB_CD}"
 !define Channel "release"
 
 # The installer's certificate name and issuer expected by the stub installer
-!define CertNameDownload   "Mozilla Corporation"
+!define CertNameDownload   "Sigterm.no"
 !define CertIssuerDownload "DigiCert Assured ID Code Signing CA-1"
 
 # Dialog units are used so the UI displays correctly with the system's DPI

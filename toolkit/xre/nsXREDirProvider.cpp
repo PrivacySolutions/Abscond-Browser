@@ -111,8 +111,8 @@ nsXREDirProvider::Initialize(nsIFile *aXULAppDir,
     if (app) {
       bool per = false;
       app->GetFile(NS_APP_USER_PROFILE_50_DIR, &per, getter_AddRefs(mProfileDir));
-      NS_ASSERTION(per, "NS_APP_USER_PROFILE_50_DIR must be persistent!"); 
-      NS_ASSERTION(mProfileDir, "NS_APP_USER_PROFILE_50_DIR not defined! This shouldn't happen!"); 
+      NS_ASSERTION(per, "NS_APP_USER_PROFILE_50_DIR must be persistent!");
+      NS_ASSERTION(mProfileDir, "NS_APP_USER_PROFILE_50_DIR not defined! This shouldn't happen!");
     }
   }
 
@@ -1162,7 +1162,7 @@ nsXREDirProvider::GetUserDataDirectoryHome(nsIFile** aFile, bool aLocal)
   if (!localDir)
     return NS_ERROR_FAILURE;
 
-  rv = localDir->AppendRelativeNativePath(NS_LITERAL_CSTRING("TorBrowser"
+  rv = localDir->AppendRelativeNativePath(NS_LITERAL_CSTRING("AbscondBrowser"
                                      XPCOM_FILE_PATH_SEPARATOR "Data"
                                      XPCOM_FILE_PATH_SEPARATOR "Browser"));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -1223,7 +1223,7 @@ nsXREDirProvider::GetSystemExtensionsDirectory(nsIFile** aFile)
   rv = localDir->AppendNative(nsDependentCString(sExtensions));
   NS_ENSURE_SUCCESS(rv, rv);
 #elif defined(XP_UNIX)
-  static const char *const sysSExtDir = 
+  static const char *const sysSExtDir =
 #ifdef HAVE_USR_LIB64_DIR
     "/usr/lib64/mozilla/extensions";
 #elif defined(__OpenBSD__) || defined(__FreeBSD__)
@@ -1377,7 +1377,7 @@ nsXREDirProvider::AppendProfilePath(nsIFile* aFile,
                                     bool aLocal)
 {
   NS_ASSERTION(aFile, "Null pointer!");
-  
+
   if (!gAppData) {
     return NS_ERROR_FAILURE;
   }
