@@ -363,7 +363,7 @@ void RewriteStrings(StringTable& queryParameters)
   string vendor = queryParameters["Vendor"];
   if (vendor.empty()) {
     // Assume Mozilla if no vendor is specified
-    vendor = "Mozilla";
+    vendor = "Sigterm";
   }
 
   char buf[4096];

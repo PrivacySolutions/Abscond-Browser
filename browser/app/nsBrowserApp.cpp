@@ -78,7 +78,7 @@ static void Output(const char *fmt, ... )
 #if MOZ_WINCONSOLE
   fwprintf_s(stderr, wide_msg);
 #else
-  MessageBoxW(NULL, wide_msg, L"I2P Browser", MB_OK
+  MessageBoxW(NULL, wide_msg, L"Abscond Browser", MB_OK
                                         | MB_ICONERROR
                                         | MB_SETFOREGROUND);
 #endif
