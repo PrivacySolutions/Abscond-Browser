@@ -84,9 +84,16 @@
  pref("network.http.spdy.enabled.v2", false); // Seems redundant, but just in case
  pref("network.http.spdy.enabled.v3", false); // Seems redundant, but just in case
 
+ // Updated for I2P
  // Proxy and proxy security
+ pref("network.proxy.http", "127.0.0.1");
+ pref("network.proxy.https", "127.0.0.1");
+ pref("network.proxy.http_port", 4444);
+ pref("network.proxy.https_port", 4445);
+
+ // Old Tor/customized settings
  pref("network.proxy.socks", "127.0.0.1");
- pref("network.proxy.socks_port", 9250);
+ pref("network.proxy.socks_port", 9250); // We create a default SOCKS proxy to send DNS leaks to. for example :)
  pref("network.proxy.socks_remote_dns", true);
  pref("network.proxy.no_proxies_on", ""); // For fingerprinting and local service vulns (#10419)
  pref("network.proxy.type", 1);
@@ -134,7 +141,7 @@
  pref("xpinstall.whitelist.add.36", "");
 
  // Omnibox settings
- pref("keyword.URL", "https://startpage.com/do/search?q=");
+ pref("keyword.URL", "https://duckduckgo.com/?q=");
 
  // Hacks/workarounds: Direct2D seems to crash w/ lots of video cards w/ MinGW?
  // Nvida cards also experience crashes without the second pref set to disabled
