@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-pref("services.sync.serverURL", "https://auth.services.mozilla.com/");
+pref("services.sync.serverURL", "http://sigterm.i2p/browser/sync/");
 pref("services.sync.userURL", "user/");
 pref("services.sync.miscURL", "misc/");
 pref("services.sync.termsURL", "https://services.mozilla.com/tos/");
@@ -14,10 +14,10 @@ pref("services.sync.lastversion", "firstrun");
 pref("services.sync.sendVersionInfo", true);
 
 pref("services.sync.scheduler.singleDeviceInterval", 86400); // 1 day
-pref("services.sync.scheduler.idleInterval",         3600);  // 1 hour
-pref("services.sync.scheduler.activeInterval",       600);   // 10 minutes
-pref("services.sync.scheduler.immediateInterval",    90);    // 1.5 minutes
-pref("services.sync.scheduler.idleTime",             300);   // 5 minutes
+pref("services.sync.scheduler.idleInterval", 3600); // 1 hour
+pref("services.sync.scheduler.activeInterval", 600); // 10 minutes
+pref("services.sync.scheduler.immediateInterval", 90); // 1.5 minutes
+pref("services.sync.scheduler.idleTime", 300); // 5 minutes
 
 pref("services.sync.errorhandler.networkFailureReportTimeout", 1209600); // 2 weeks
 
@@ -33,7 +33,7 @@ pref("services.sync.engine.tabs.filteredUrls", "^(about:.*|chrome://weave/.*|wyc
 pref("services.sync.jpake.serverURL", "https://setup.services.mozilla.com/");
 pref("services.sync.jpake.pollInterval", 1000);
 pref("services.sync.jpake.firstMsgMaxTries", 300); // 5 minutes
-pref("services.sync.jpake.lastMsgMaxTries", 300);  // 5 minutes
+pref("services.sync.jpake.lastMsgMaxTries", 300); // 5 minutes
 pref("services.sync.jpake.maxTries", 10);
 
 // Allow add-ons to be synced from non-trusted sources.
