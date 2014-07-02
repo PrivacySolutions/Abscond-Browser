@@ -286,8 +286,8 @@ NS_METHOD nsAppFileLocationProvider::CloneMozBinDirectory(nsIFile **aLocalFile)
 //----------------------------------------------------------------------------------------
 // GetProductDirectory - Gets the directory which contains the application data folder
 //
-// UNIX and WIN   : <App Folder>/AbscondBrowser/Data/Browser
-// Mac            : <App Folder>/../../AbscondBrowser/Data/Browser
+// UNIX and WIN   : <App Folder>/Config/Browser
+// Mac            : <App Folder>/Config/Browser
 //----------------------------------------------------------------------------------------
 NS_METHOD nsAppFileLocationProvider::GetProductDirectory(nsIFile **aLocalFile, bool aLocal)
 {
@@ -301,9 +301,9 @@ NS_METHOD nsAppFileLocationProvider::GetProductDirectory(nsIFile **aLocalFile, b
     NS_ENSURE_SUCCESS(rv, rv);
 
     int levelsToRemove = 1; // In FF21+, bin dir points to browser subdirectory.
-#if defined(XP_MACOSX)
+/*#if defined(XP_MACOSX)
     levelsToRemove += 2;
-#endif
+#endif*/
     while (localDir && (levelsToRemove > 0)) {
         // When crawling up the hierarchy, components named "." do not count.
         nsAutoCString removedName;
@@ -324,8 +324,7 @@ NS_METHOD nsAppFileLocationProvider::GetProductDirectory(nsIFile **aLocalFile, b
     if (!localDir)
         return NS_ERROR_FAILURE;
 
-    rv = localDir->AppendRelativeNativePath(NS_LITERAL_CSTRING("AbscondBrowser"
-                                       XPCOM_FILE_PATH_SEPARATOR "Data"
+    rv = localDir->AppendRelativeNativePath(NS_LITERAL_CSTRING("Config"
                                        XPCOM_FILE_PATH_SEPARATOR "Browser"));
     NS_ENSURE_SUCCESS(rv, rv);
 
