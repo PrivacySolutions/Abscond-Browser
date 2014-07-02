@@ -88,8 +88,10 @@
  // Proxy and proxy security
  pref("network.proxy.http", "127.0.0.1");
  pref("network.proxy.https", "127.0.0.1");
+ pref("network.proxy.ftp", "127.0.0.1");
  pref("network.proxy.http_port", 4444);
  pref("network.proxy.https_port", 4445);
+ pref("network.proxy.ftp_port", 4444);
 
  // Old Tor/customized settings
  pref("network.proxy.socks", "127.0.0.1");
