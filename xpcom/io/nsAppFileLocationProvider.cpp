@@ -300,7 +300,7 @@ NS_METHOD nsAppFileLocationProvider::GetProductDirectory(nsIFile **aLocalFile, b
     rv = CloneMozBinDirectory(getter_AddRefs(localDir));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    int levelsToRemove = 1; // In FF21+, bin dir points to browser subdirectory.
+    int levelsToRemove = 2; // In FF21+, bin dir points to browser subdirectory.
 /*#if defined(XP_MACOSX)
     levelsToRemove += 2;
 #endif*/
