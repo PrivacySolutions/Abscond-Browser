@@ -44,7 +44,7 @@
             error : function (xmlHttpRequest, textStatus, errorThrown) {
              if (textStatus == 'timeout') {
               this.tryCount++;
-              if (this.tryCount <= this.retryLimit) {
+              if (this.tryCount == this.retryLimit) {
                 //try again
                   $.ajax(this);
                   return;
